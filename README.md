@@ -1,22 +1,29 @@
-# Better Bookkeeping Onboarding App
+# Better Bookkeeping Demo App
 
-A comprehensive client onboarding application for Better Bookkeeping built with modern React tooling. This application guides users through uploading tax returns, entering business details, and connecting financial accounts.
+This repo is meant to be representative of how we're building features in the better bookkeeping ecosystem. We're going all in on the TanStack world and dockerizing our apps. In reality the UI components and Database connection logic is installed from external packages, but it's all bundled here for easy access and getting started
 
-## Features
+This repo is scaffolded as a simple workout tracking app. The user configures the movements in their workouts (e.g. bench-press, dumbbell curls etc.)
 
-- **Multi-step Onboarding Flow**: Guided step-by-step process including:
-  - Tax return document upload and parsing
-  - Personal and business details collection
-  - Business information management
-  - Bank account linking via Plaid
-  - Stripe subscription setup (conditional)
-  - Completion confirmation
+In the "Current Workout" section the user will create a new workout, and add "sets" to that workout. Each set includes a selected movement, a weight for that movement and a number of reps
 
-- **Document Processing**: Advanced tax document parsing with real-time progress tracking
-- **Financial Integration**: Plaid Link integration for secure bank account connections
-- **Google Drive Integration**: Secure document storage and retrieval
-- **Auth0 Authentication**: Enterprise-grade user authentication
-- **Responsive UI**: Modern interface built with Better Bookkeeping UI components
+Once the user hits "complete workout" that workout will be added to their history and can be viewed in the "workout history" section
+
+## Feature Request
+
+1. Add weight tracking section where a user can input their weight. This should be something they can track over time. Add a chart showing the history of that
+
+2. The current setup doesn't support body-weight movements very well (e.g. pullups / pushups) update the "movements page" so a user can flag a movement as "body-weight" when they create it. When a "body-weight" movement is added to the current workout the weight field should default to the most recent user-inputted weight
+
+3. The Workout history should give the user a sense of progression. One way to do this is to show certain summary metrics for each movement and their progression over time. Please implement a chart where a user can select a movement and a corresponding metric and see that metric plotted against time.
+   metrics:
+   - maximium weight (the maximum weight for that movement on a given day)
+   - total volume (volume of a set is weight \* reps total volume for a movement is total volume of all sets in a workout)
+   - total reps
+
+4. There are no tests! Please create some unit tests for the following core behaviors:
+   Movements: create / read / delete
+   Sets: create / read / delete
+   Workouts: create / read / delete
 
 ## Tech Stack
 
@@ -83,60 +90,14 @@ The Docker setup includes volume mounts for hot reloading and runs on port 3200.
 src/
 ├── routes/                    # File-based routing
 │   ├── __index/              # Onboarding flow routes
-│   │   ├── _layout.upload-returns/
-│   │   ├── _layout.basic-details/
-│   │   ├── _layout.businesses/
-│   │   ├── _layout.business-details/
-│   │   ├── _layout.link-accounts/
-│   │   ├── _layout.billing/     # Stripe subscription setup (conditional)
-│   │   └── _layout.success/
+│   │   ├── _layout.current-workout/
+│   │   ├── _layout.workout-history/
+│   │   └── _layout.movements/
 │   ├── auth/                 # Authentication routes
 │   └── __root.tsx           # Root layout
 ├── components/               # Reusable components
-├── hooks/                   # Custom React hooks (includes useTotalSteps)
-├── lib/                     # Business logic
-│   ├── onboarding/          # Onboarding-specific logic
-│   ├── document-parser/     # Document processing
-│   ├── plaid/              # Financial integration
-│   └── stripe/             # Stripe subscription management
-├── stores/                  # Client state management
-└── integrations/           # Third-party integrations
+└── lib/                     # Business logic
 ```
-
-## Key Integrations
-
-### Authentication (Auth0)
-
-- User authentication and session management
-- Secure token handling
-- Role-based access control
-
-### Document Processing
-
-- Google Drive file storage
-- Automated tax return parsing
-- Real-time processing status updates
-
-### Financial Services (Plaid)
-
-- Bank account verification
-- Secure account linking
-- Institution data retrieval
-
-### Billing Integration (Stripe)
-
-- Conditional subscription setup step
-- Embedded Stripe Checkout for payment collection
-- Support for recurring subscriptions and one-time invoices
-- Dynamic step indicator based on payment requirements
-- Test mode utilities for development
-
-### Database Integration
-
-- Better Bookkeeping DB integration
-- Form data persistence
-- Business entity management
-- Stripe subscription and payment tracking
 
 ## Development Tools
 
@@ -148,13 +109,6 @@ src/
 ## Environment Variables
 
 Required environment variables (see `.env.example`):
-
-- Auth0 configuration
-- Google Drive API credentials
-- Plaid API keys
-- Stripe API keys (secret key and public key)
-- Better Bookkeeping DB connection
-- Document parser service URLs
 
 ## Testing
 
