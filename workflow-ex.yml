@@ -1,0 +1,155 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: CI/CD
+on:
+  push: # Runs on pushes to any branch
+  pull_request:
+  workflow_dispatch: # Allows manual triggering
+permissions:
+  contents: write # to create release tags
+  issues: write # to create issues
+  pull-requests: write # to create pull requests
+  packages: write # to publish packages
+  id-token: write # to verify the deployment source
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install commitlint
+        run: bun install -D @commitlint/cli @commitlint/config-conventional
+      - name: Validate current commit (last commit) with commitlint
+        if: github.event_name == 'push'
+        run: bunx commitlint --last --verbose
+      - name: Validate PR commits with commitlint
+        if: github.event_name == 'pull_request'
+        run: bunx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+
+  # Releases the client package to our github package registry
+  release:
+    runs-on: ubuntu-latest
+    needs: commitlint
+    # Run on pushes to main, develop, and alpha branches (not on PRs)
+    if: >
+      github.event_name == 'push' && (
+        github.ref == 'refs/heads/main' || 
+        github.ref == 'refs/heads/test' ||
+        github.ref == 'refs/heads/staging'
+      )
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+      - name: Setup .npmrc for private registry
+        working-directory: ./api
+        run: |
+          echo "@better-bookkeeping:registry=https://npm.pkg.github.com" > .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+      - name: Install dependencies
+        working-directory: ./api
+        run: bun install
+      - name: Build API package
+        working-directory: ./api
+        run: bun run build
+      - name: Semantic Release (API package only)
+        id: semantic-release
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          working_directory: ./api
+          extra_plugins: |
+            @semantic-release/commit-analyzer
+            @semantic-release/github
+            @semantic-release/npm
+            conventional-changelog-conventionalcommits
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Show version in job summary
+      - name: Add release info to job summary
+        if: steps.semantic-release.outputs.new_release_published == 'true'
+        run: |
+          echo "## 🚀 New Release Published!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ steps.semantic-release.outputs.new_release_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Install command:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "bun install @better-bookkeeping/document-parser@${{ steps.semantic-release.outputs.new_release_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      # Add a commit comment with version info
+      - name: Add commit comment with version
+        if: steps.semantic-release.outputs.new_release_published == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.semantic-release.outputs.new_release_version }}';
+
+            const installCmd = `bun install @better-bookkeeping/document-parser@${version}`;
+
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `🚀 **Release ${version} published!**\n\n\`${installCmd}\``
+            });
+  build-api-image:
+    if: >
+      github.event_name == 'push' && (
+        github.ref == 'refs/heads/main' ||
+        github.ref == 'refs/heads/test' ||
+        github.ref == 'refs/heads/staging'
+      ) || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    needs:
+      - commitlint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set environment tags
+        id: env-tags
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "branch_tag=main" >> $GITHUB_OUTPUT
+            echo "env_tag=production" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
+            echo "branch_tag=test" >> $GITHUB_OUTPUT
+            echo "env_tag=test" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+            echo "branch_tag=staging" >> $GITHUB_OUTPUT
+            echo "env_tag=staging" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./api
+          target: production
+          push: true
+          secrets: |
+            "github_token=${{ secrets.GITHUB_TOKEN }}"
+          tags: |
+            ${{ github.ref == 'refs/heads/main' && format('ghcr.io/{0}:latest', github.repository) || '' }}
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:${{ steps.env-tags.outputs.branch_tag }}
+            ghcr.io/${{ github.repository }}:${{ steps.env-tags.outputs.env_tag }}

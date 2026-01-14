@@ -1,0 +1,10 @@
+#!/bin/sh
+
+BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+
+if  [ "$BRANCH_NAME" = "main" ] || [ "$BRANCH_NAME" = "test" ] || [ "$BRANCH_NAME" = "staging" ]; then
+  echo "Running typecheck for $BRANCH_NAME branch..."
+  bun run typecheck
+else
+  echo "Skipping specific pre-push checks for branch: $BRANCH_NAME"
+fi

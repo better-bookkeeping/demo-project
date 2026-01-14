@@ -1,0 +1,30 @@
+name: abacus-onboarding
+
+services:
+  app:
+    container_name: abacus-onboarding
+    image: ghcr.io/better-bookkeeping/abacus-onboarding:${ENVIRONMENT}
+    ports:
+      - ${PORT:-3902}:3902
+    env_file:
+      - .env
+      - .env.local
+    restart: unless-stopped
+    networks:
+      - abacus-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3902/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  abacus-network:
+    external: true
+    name: abacus_abacus-network

@@ -1,0 +1,51 @@
+name: demo-project
+
+secrets:
+  github_token:
+    environment: GITHUB_TOKEN
+
+services:
+  workout-app:
+    user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+    container_name: demo-project
+    networks:
+      - demo-project-network
+    env_file:
+      - .env
+      - .env.local
+    environment:
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+    build:
+      context: .
+      secrets:
+        - github_token
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - ${PORT:-3902}:3902
+    volumes:
+      - demo_file_db:/app/prisma/db
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: bun.lock
+
+networks:
+  demo-project-network:
+    name: demo_demo-project-network
+
+volumes:
+  demo_file_db:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./prisma/db
+      o: bind

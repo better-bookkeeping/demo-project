@@ -1,0 +1,47 @@
+
+generator client {
+  provider        = "prisma-client"
+  output          = "./generated/client"
+  moduleFormat    = "esm"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./db/dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  fakePassword String
+  currentToken String?
+  tokenExpiresAt DateTime?
+  workouts Workout[]
+}
+
+model Movement {
+  id        String   @id @default(uuid())
+  name      String
+  sets      Set[]
+}
+
+model Workout {
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+  id        String   @id @default(uuid())
+  completedAt DateTime?
+  sets      Set[]
+}
+
+model Set {
+  id        String   @id @default(uuid())
+  workoutId String
+  workout   Workout @relation(fields: [workoutId], references: [id])
+  movementId String
+  movement   Movement @relation(fields: [movementId], references: [id])
+  reps      Int
+  weight    Int
+}
