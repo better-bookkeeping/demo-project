@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client"
   output   = "./generated/client"
@@ -9,37 +8,35 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String    @id @default(uuid())
+  email     String    @unique
   name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  fakePassword String
-  currentToken String?
-  tokenExpiresAt DateTime?
-  workouts Workout[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  password  String
+  workouts  Workout[]
 }
 
 model Movement {
-  id        String   @id @default(uuid())
-  name      String
-  sets      Set[]
+  id   String @id @default(uuid())
+  name String
+  sets Set[]
 }
 
 model Workout {
-  userId String
-  user   User @relation(fields: [userId], references: [id])
-  id        String   @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  id          String    @id @default(uuid())
   completedAt DateTime?
-  sets      Set[]
+  sets        Set[]
 }
 
 model Set {
-  id        String   @id @default(uuid())
-  workoutId String
-  workout   Workout @relation(fields: [workoutId], references: [id])
+  id         String   @id @default(uuid())
+  workoutId  String
+  workout    Workout  @relation(fields: [workoutId], references: [id])
   movementId String
   movement   Movement @relation(fields: [movementId], references: [id])
-  reps      Int
-  weight    Int
+  reps       Int
+  weight     Int
 }

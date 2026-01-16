@@ -5,9 +5,7 @@ CREATE TABLE "User" (
     "name" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "fakePassword" TEXT NOT NULL,
-    "currentToken" TEXT,
-    "tokenExpiresAt" TIMESTAMP(3),
+    "password" TEXT NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
