@@ -1,33 +1,19 @@
-import { getUserServerFn } from "@/lib/auth.server";
-import { getServerSidePrismaClient } from "@/lib/db.server";
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { deleteCookie } from "@tanstack/react-start/server";
+import { logoutServerFn } from "@/lib/auth.server";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/logout")({
-  server: {
-    handlers: {
-      GET: async ({ request }) => {
-        const user = await getUserServerFn();
-        if (!user) {
-          return redirect({
-            href: "/sign-in",
-          });
-        }
-        const prisma = await getServerSidePrismaClient();
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            currentToken: null,
-            tokenExpiresAt: new Date(),
-          },
-        });
-        deleteCookie("access_token");
-        deleteCookie("id_token");
-        return;
-      },
-    },
-  },
-  component: () => {
-    return <div>Logging out...</div>;
-  },
+  component: LogoutPage,
 });
+
+function LogoutPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    logoutServerFn().then(() => {
+      router.navigate({ to: "/sign-in" });
+    });
+  }, [router]);
+
+  return <div>Logging out...</div>;
+}

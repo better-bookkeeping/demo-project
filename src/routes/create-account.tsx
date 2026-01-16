@@ -1,61 +1,9 @@
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { setCookie } from "@tanstack/react-start/server";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getServerSidePrismaClient } from "@/lib/db.server";
-import { accessTokenCookieName, idTokenCookieName } from "@/lib/auth.consts";
-import { z } from "zod";
-import { generateAuthToken } from "@/lib/auth.server";
-
-const createAccountServerFn = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ email: z.email(), name: z.string().min(1), password: z.string().min(6) }))
-  .handler(async ({ data }: { data: { email: string; name: string; password: string } }) => {
-    const { email, name, password } = data;
-
-    const prisma = await getServerSidePrismaClient();
-
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      return { success: false, error: "An account with this email already exists" };
-    }
-
-    const { token, expiresAt } = generateAuthToken(email);
-
-    // Set cookies for immediate login
-    setCookie(accessTokenCookieName, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      expires: expiresAt,
-    });
-
-    setCookie(idTokenCookieName, email, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      expires: expiresAt,
-    });
-
-    // Create user
-    await prisma.user.create({
-      data: {
-        email,
-        name,
-        fakePassword: password,
-        currentToken: token,
-        tokenExpiresAt: expiresAt,
-      },
-    });
-
-    return { success: true };
-  });
+import { createAccountServerFn } from "@/lib/auth.server";
 
 export const Route = createFileRoute("/create-account")({
   beforeLoad: ({ context }) => {

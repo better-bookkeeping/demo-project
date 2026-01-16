@@ -1,62 +1,20 @@
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { setCookie } from "@tanstack/react-start/server";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { signInServerFn } from "@/lib/auth.server";
 import { getServerSidePrismaClient } from "@/lib/db.server";
-import { accessTokenCookieName, idTokenCookieName } from "@/lib/auth.consts";
-import { z } from "zod";
-import { generateAuthToken } from "@/lib/auth.server";
 import { configService } from "@/lib/config.server";
 
 const getAllUsersServerFn = createServerFn().handler(async () => {
   if (configService.getAppConfig().environment === "production") throw new Error("Forbidden!");
   const prisma = await getServerSidePrismaClient();
   return prisma.user.findMany({
-    select: { id: true, email: true, name: true, createdAt: true, fakePassword: true },
+    select: { id: true, email: true, name: true, createdAt: true, password: true },
   });
 });
-
-const signInServerFn = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ email: z.string().email(), password: z.string() }))
-  .handler(async ({ data }: { data: { email: string; password: string } }) => {
-    const { email, password } = data;
-
-    const prisma = await getServerSidePrismaClient();
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user || user.fakePassword !== password) {
-      return { success: false, error: "Invalid email or password" };
-    }
-
-    // Generate a simple token and set expiry
-    const { token, expiresAt } = generateAuthToken(email);
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { currentToken: token, tokenExpiresAt: expiresAt },
-    });
-
-    setCookie(accessTokenCookieName, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      expires: expiresAt,
-    });
-
-    setCookie(idTokenCookieName, email, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      expires: expiresAt,
-    });
-
-    return { success: true };
-  });
 
 export const Route = createFileRoute("/sign-in")({
   beforeLoad: ({ context }) => {
