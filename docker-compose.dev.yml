@@ -36,7 +36,6 @@ services:
       - .env
       - .env.local
     environment:
-      - NODE_TLS_REJECT_UNAUTHORIZED=0
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/demo_project
     build:
       context: .
