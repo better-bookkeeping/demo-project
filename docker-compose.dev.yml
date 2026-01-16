@@ -5,9 +5,31 @@ secrets:
     environment: GITHUB_TOKEN
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: demo-project-db
+    networks:
+      - demo-project-network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: demo_project
+    ports:
+      - "5432:5432"
+    volumes:
+      - demo_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   workout-app:
     user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
     container_name: demo-project
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - demo-project-network
     env_file:
@@ -15,6 +37,7 @@ services:
       - .env.local
     environment:
       - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/demo_project
     build:
       context: .
       secrets:
@@ -26,8 +49,6 @@ services:
       target: development
     ports:
       - ${PORT:-3902}:3902
-    volumes:
-      - demo_file_db:/app/prisma/db
     develop:
       watch:
         - action: sync
@@ -43,9 +64,4 @@ networks:
     name: demo_demo-project-network
 
 volumes:
-  demo_file_db:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./prisma/db
-      o: bind
+  demo_postgres_data:

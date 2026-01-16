@@ -1,13 +1,11 @@
 
 generator client {
-  provider        = "prisma-client"
-  output          = "./generated/client"
-  moduleFormat    = "esm"
+  provider = "prisma-client"
+  output   = "./generated/client"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./db/dev.db"
+  provider = "postgresql"
 }
 
 model User {

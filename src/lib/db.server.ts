@@ -1,3 +1,4 @@
+import { PrismaPg } from "@prisma/adapter-pg";
 import { getServerConfigServerFn } from "./get-server-config.server";
 import { PrismaClient } from "../../prisma/generated/client/client";
 
@@ -8,10 +9,9 @@ export const getServerSidePrismaClient = async () => {
     throw new Error("getServerSidePrismaClient should only be called on the server");
   }
   if (!_prismaClient) {
-    _prismaClient = new PrismaClient({
-      datasourceUrl: (await getServerConfigServerFn()).database.url,
-      errorFormat: "pretty",
-    });
+    const config = await getServerConfigServerFn();
+    const adapter = new PrismaPg({ connectionString: config.database.url });
+    _prismaClient = new PrismaClient({ adapter });
   }
   return _prismaClient;
 };
