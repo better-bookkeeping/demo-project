@@ -49,7 +49,7 @@ function MovementsPage() {
               onChange={(e) => setName(e.target.value)}
               className="flex-1"
             />
-            <Button type="submit" disabled={createMovementMutation.isPending || !name.trim()}>
+            <Button type="submit" disabled={!name.trim()}>
               {createMovementMutation.isPending ? "Adding..." : "Add"}
             </Button>
           </form>

@@ -70,7 +70,7 @@ function WorkoutHistoryPage() {
             size="sm"
             variant="destructive"
             onClick={handleDeleteSelected}
-            disabled={deleteWorkoutsMutation.isPending || selectedWorkouts.size === 0}>
+            disabled={selectedWorkouts.size === 0}>
             <Trash2 className="w-4 h-4 mr-2" />
             {deleteWorkoutsMutation.isPending ? "Deleting..." : `Delete Selected (${selectedWorkouts.size})`}
           </Button>

@@ -79,7 +79,7 @@ function CurrentWorkoutPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-slate-500 mb-4">No active workout. Ready to start?</p>
-            <Button onClick={() => createWorkoutMutation.mutate()} disabled={createWorkoutMutation.isPending} size="lg">
+            <Button onClick={() => createWorkoutMutation.mutate()} size="lg">
               <Play className="w-4 h-4 mr-2" />
               {createWorkoutMutation.isPending ? "Starting..." : "Start Workout"}
             </Button>
@@ -93,7 +93,7 @@ function CurrentWorkoutPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-900">Current Workout</h1>
-        <Button variant="outline" onClick={() => completeWorkoutMutation.mutate()} disabled={completeWorkoutMutation.isPending}>
+        <Button variant="outline" onClick={() => completeWorkoutMutation.mutate()}>
           <Check className="w-4 h-4 mr-2" />
           {completeWorkoutMutation.isPending ? "Completing..." : "Complete Workout"}
         </Button>
@@ -136,7 +136,7 @@ function CurrentWorkoutPage() {
               className="w-24"
               min={1}
             />
-            <Button type="submit" disabled={addSetMutation.isPending || !selectedMovement || !reps || !weight} size="sm">
+            <Button type="submit" disabled={!selectedMovement || !reps || !weight} size="sm">
               <Plus className="w-4 h-4 mr-1" />
               {addSetMutation.isPending ? "Adding..." : "Add"}
             </Button>
