@@ -23,3 +23,7 @@ sessions/.archived/
 .claude
 
 generated/
+
+# Playwright
+playwright-report/
+test-results/

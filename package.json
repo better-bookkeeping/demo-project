@@ -10,7 +10,9 @@
     "serve": "vite preview",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "generate": "prisma generate"
+    "generate": "prisma generate",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.9.0",
@@ -41,6 +43,7 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.8.1",
+    "@playwright/test": "^1.57.0",
     "@tanstack/nitro-v2-vite-plugin": "^1.139.0",
     "@tanstack/router-cli": "^1.139.14",
     "@testing-library/dom": "^10.4.1",

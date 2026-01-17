@@ -14,10 +14,10 @@ A simple workout tracking app built with TanStack Start. Users can configure mov
    - total reps
    - total volume (volume of a set is weight \* reps, total volume for a movement is total volume of all sets in a workout)
 
-4. There are no tests! Please create some unit tests for the following core behaviors:
-   - Movements: create / read / delete
-   - Sets: create / read / delete
-   - Workouts: create / read / delete
+4. There are no tests! Please implement the e2e tests in the `e2e/` directory using Playwright. The test scaffolding is already set up - you just need to implement the test cases:
+   - `e2e/movements.spec.ts` - Movement CRUD operations
+   - `e2e/sets.spec.ts` - Set CRUD operations
+   - `e2e/workouts.spec.ts` - Workout CRUD operations
 
 5. **Security Fix**: The authentication system stores passwords in plaintext. Please implement proper password hashing using a secure algorithm (e.g., bcrypt, argon2). Update the sign-up and sign-in flows accordingly.
 
@@ -40,7 +40,7 @@ Please use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/
 - **Database**: PostgreSQL + Prisma
 - **Styling**: Tailwind CSS v4
 - **Runtime**: Bun
-- **Testing**: Vitest + React Testing Library
+- **Testing**: Playwright (e2e)
 
 ## Development
 
@@ -67,7 +67,8 @@ bun run dev:down
 - `bun run dev` - Start development server with Docker
 - `bun run dev:down` - Stop Docker services
 - `bun run build` - Build for production
-- `bun run test` - Run tests with Vitest
+- `bun run test` - Run e2e tests with Playwright
+- `bun run test:ui` - Run e2e tests with Playwright UI
 - `bun run typecheck` - Run TypeScript type checking
 - `bun run db:migrate` - Run database migrations
 
