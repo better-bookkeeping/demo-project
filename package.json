@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "./scripts/dev.sh up",
     "dev:down": "./scripts/dev.sh down",
-    "db:migrate": "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/demo_project prisma migrate dev",
+    "db:migrate": "bun scripts/db-migrate.ts",
+    "db:migrate-passwords": "bun scripts/migrate-passwords.ts",
     "build": "vite build",
     "serve": "vite preview",
     "format": "prettier --write .",
