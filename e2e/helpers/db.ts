@@ -32,6 +32,10 @@ export async function cleanupTestUser(email: string): Promise<void> {
     where: { userId: user.id },
   });
 
+  await prisma.weightEntry.deleteMany({
+    where: { userId: user.id },
+  });
+
   await prisma.user.delete({
     where: { id: user.id },
   });
