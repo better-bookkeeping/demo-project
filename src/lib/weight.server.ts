@@ -55,13 +55,12 @@ export const deleteWeightEntryServerFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ entryId: z.string() }))
   .handler(async ({ context, data }: { context: { user: { id: string } }; data: { entryId: string } }) => {
     const prisma = await getServerSidePrismaClient();
-    const entry = await prisma.weightEntry.findFirst({
+    const result = await prisma.weightEntry.deleteMany({
       where: { id: data.entryId, userId: context.user.id },
     });
-    if (!entry) {
+    if (result.count === 0) {
       return { success: false, error: "Entry not found" };
     }
-    await prisma.weightEntry.delete({ where: { id: data.entryId } });
     return { success: true };
   });
 
@@ -92,26 +91,21 @@ export const getLatestWeightServerFn = createServerFn()
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     const prisma = await getServerSidePrismaClient();
-    const entry = await prisma.weightEntry.findFirst({
+    const result = await prisma.weightEntry.findFirst({
       where: { userId: context.user.id },
       orderBy: { recordedAt: "desc" },
+      include: { user: { select: { weightUnit: true } } },
     });
-    if (!entry) {
+    if (!result) {
       return null;
     }
-    // Return the weight in the user's current unit preference
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { weightUnit: true },
-    });
-    const userUnit = user?.weightUnit ?? WeightUnit.lbs;
-    // Convert if needed
-    let weight = entry.weight;
-    if (entry.unit !== userUnit) {
-      if (entry.unit === "lbs" && userUnit === "kg") {
-        weight = Math.round(entry.weight * 0.453592 * 10) / 10;
-      } else if (entry.unit === "kg" && userUnit === "lbs") {
-        weight = Math.round(entry.weight * 2.20462 * 10) / 10;
+    const userUnit = result.user.weightUnit;
+    let weight = result.weight;
+    if (result.unit !== userUnit) {
+      if (result.unit === "lbs" && userUnit === "kg") {
+        weight = Math.round(result.weight * 0.453592 * 10) / 10;
+      } else if (result.unit === "kg" && userUnit === "lbs") {
+        weight = Math.round(result.weight * 2.20462 * 10) / 10;
       }
     }
     return { weight, unit: userUnit };
