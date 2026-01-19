@@ -233,7 +233,7 @@ function NutritionPage() {
               </div>
 
               <div className="col-span-2">
-                <Input placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
+                <Input placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} maxLength={100} />
               </div>
             </div>
 
