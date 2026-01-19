@@ -153,7 +153,7 @@ function WorkoutHistoryPage() {
                         fontSize: "12px",
                       }}
                       labelStyle={{ color: "oklch(65% 0.01 250)" }}
-                      formatter={(value) => [value, getMetricLabel(selectedMetric)]}
+                      formatter={(value) => [value, getMetricLabel(selectedMetric, weightUnit)]}
                     />
                     <Line
                       type="monotone"

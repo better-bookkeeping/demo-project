@@ -61,10 +61,15 @@ export function calculateProgressionData(
           break;
       }
 
+      const completedDate = new Date(workout.completedAt!);
       return {
-        date: new Date(workout.completedAt!).toLocaleDateString("en-US", {
+        // Include time to make each point unique for proper chart highlighting
+        date: completedDate.toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
+        }) + " " + completedDate.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
         }),
         value,
       };
@@ -95,13 +100,13 @@ export function getUniqueMovements(workouts: Workout[]): Array<{ id: string; nam
 /**
  * Get label for metric
  */
-export function getMetricLabel(metric: ProgressionMetric): string {
+export function getMetricLabel(metric: ProgressionMetric, weightUnit: string = "lbs"): string {
   switch (metric) {
     case "max_weight":
-      return "Max Weight (lbs)";
+      return `Max Weight (${weightUnit})`;
     case "total_reps":
       return "Total Reps";
     case "total_volume":
-      return "Total Volume (lbs)";
+      return `Total Volume (${weightUnit})`;
   }
 }
