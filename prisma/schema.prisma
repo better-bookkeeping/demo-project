@@ -25,9 +25,10 @@ model User {
 }
 
 model Movement {
-  id   String @id @default(uuid())
-  name String
-  sets Set[]
+  id           String  @id @default(uuid())
+  name         String
+  isBodyWeight Boolean @default(false)
+  sets         Set[]
 }
 
 model Workout {
