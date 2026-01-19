@@ -5,30 +5,33 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createMovementServerFn, updateMovementServerFn, deleteMovementServerFn } from "@/lib/movements.server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { movementsQueryOptions } from "./-queries/movements";
-import { Pencil, Check, X, Trash2 } from "lucide-react";
+import { Pencil, Check, X, Trash2, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/__index/_layout/movements/")({
   loader: async ({ context }) => {
-    await context.queryClient.ensureQueryData(movementsQueryOptions());
+    await context.queryClient.ensureQueryData(movementsQueryOptions(context.user.id));
   },
   component: MovementsPage,
 });
 
 function MovementsPage() {
+  const { user } = Route.useRouteContext();
   const queryClient = useQueryClient();
-  const { data: movements } = useSuspenseQuery(movementsQueryOptions());
+  const { data: movements } = useSuspenseQuery(movementsQueryOptions(user.id));
   const [name, setName] = useState("");
   const [isBodyWeight, setIsBodyWeight] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editIsBodyWeight, setEditIsBodyWeight] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const createMovementMutation = useMutation({
     mutationFn: (data: { name: string; isBodyWeight: boolean }) => createMovementServerFn({ data }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: movementsQueryOptions().queryKey });
+      queryClient.invalidateQueries({ queryKey: movementsQueryOptions(user.id).queryKey });
       setName("");
       setIsBodyWeight(false);
     },
@@ -38,15 +41,21 @@ function MovementsPage() {
     mutationFn: (data: { id: string; name: string; isBodyWeight: boolean }) =>
       updateMovementServerFn({ data }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: movementsQueryOptions().queryKey });
+      queryClient.invalidateQueries({ queryKey: movementsQueryOptions(user.id).queryKey });
       setEditingId(null);
     },
   });
 
   const deleteMovementMutation = useMutation({
     mutationFn: (id: string) => deleteMovementServerFn({ data: { id } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: movementsQueryOptions().queryKey });
+    onSuccess: (result) => {
+      if (result.success) {
+        queryClient.invalidateQueries({ queryKey: movementsQueryOptions(user.id).queryKey });
+        setDeleteError(null);
+      } else {
+        setDeleteError(result.error ?? "Failed to delete movement");
+        setTimeout(() => setDeleteError(null), 5000);
+      }
     },
   });
 
@@ -103,6 +112,13 @@ function MovementsPage() {
         </CardContent>
       </Card>
 
+      {deleteError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{deleteError}</AlertDescription>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>All Movements</CardTitle>
@@ -126,7 +142,7 @@ function MovementsPage() {
                           className="flex-1"
                           aria-label="Name"
                         />
-                        <Button size="icon" onClick={saveEdit} disabled={!editName.trim()} className="h-9 w-9">
+                        <Button size="icon" onClick={saveEdit} disabled={!editName.trim() || updateMovementMutation.isPending} className="h-9 w-9">
                           <Check className="w-4 h-4" />
                           <span className="sr-only">Save</span>
                         </Button>
@@ -165,6 +181,7 @@ function MovementsPage() {
                           size="icon"
                           variant="ghost"
                           onClick={() => deleteMovementMutation.mutate(movement.id)}
+                          disabled={deleteMovementMutation.isPending}
                           className="h-7 w-7 text-text-muted hover:text-destructive"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
