@@ -37,7 +37,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       disabled={disabled}
       className={cn(
-        "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg transition-all duration-150",
+        "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg transition-all duration-150 cursor-pointer",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "disabled:pointer-events-none disabled:opacity-50",
         "[&>svg]:pointer-events-none [&>svg]:shrink-0",
