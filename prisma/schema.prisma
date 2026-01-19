@@ -55,7 +55,7 @@ model Set {
   movementId String
   movement   Movement @relation(fields: [movementId], references: [id], onDelete: Restrict)
   reps       Int
-  weight     Int
+  weight     Float
 
   @@index([workoutId])
   @@index([movementId])
