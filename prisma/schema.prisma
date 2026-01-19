@@ -22,13 +22,18 @@ model User {
   weightUnit    WeightUnit    @default(lbs)
   workouts      Workout[]
   weightEntries WeightEntry[]
+  movements     Movement[]
 }
 
 model Movement {
   id           String  @id @default(uuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id])
   name         String
   isBodyWeight Boolean @default(false)
   sets         Set[]
+
+  @@index([userId])
 }
 
 model Workout {
