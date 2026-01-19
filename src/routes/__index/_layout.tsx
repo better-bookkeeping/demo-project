@@ -33,7 +33,7 @@ function RouteComponent() {
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
-        <img src="/icon.svg" alt="Logo" className="h-5 opacity-80" style={{ filter: "brightness(0) invert(1)" }} />
+        <img src="/wordmark.svg" alt="Better Bookkeeping" className="h-4 brightness-0 invert opacity-90" />
       </header>
 
       {/* Mobile Navigation Overlay */}
