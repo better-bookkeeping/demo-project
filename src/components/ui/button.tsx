@@ -24,10 +24,10 @@ const variantStyles: Record<ButtonVariant, string> = {
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  default: "h-9 px-4 text-sm",
-  sm: "h-8 px-3 text-xs",
+  default: "h-10 px-4 text-sm",
+  sm: "h-10 px-3 text-xs",
   lg: "h-11 px-5 text-sm",
-  icon: "h-9 w-9",
+  icon: "h-10 w-10",
   athletic: "h-11 px-6 text-sm",
 };
 
