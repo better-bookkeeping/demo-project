@@ -38,9 +38,13 @@ export const completeWorkoutServerFn = createServerFn({ method: "POST" })
     const prisma = await getServerSidePrismaClient();
     const workout = await prisma.workout.findFirst({
       where: { userId: context.user.id, completedAt: null },
+      include: { _count: { select: { sets: true } } },
     });
     if (!workout) {
       return { success: false, error: "No active workout to complete" };
+    }
+    if (workout._count.sets === 0) {
+      return { success: false, error: "Cannot complete a workout with no sets" };
     }
     await prisma.workout.update({
       where: { id: workout.id },
