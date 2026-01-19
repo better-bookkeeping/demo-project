@@ -94,8 +94,8 @@ function SettingsPage() {
           </form>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-text-muted">Email</label>
-            <Input type="email" value={user.email} disabled className="opacity-60" />
+            <label htmlFor="email" className="text-xs font-medium text-text-muted">Email</label>
+            <Input id="email" type="email" value={user.email} disabled className="opacity-60" />
             <p className="text-[10px] text-text-muted">Email cannot be changed</p>
           </div>
         </CardContent>
