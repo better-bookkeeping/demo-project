@@ -67,13 +67,12 @@ export const deleteFoodEntryServerFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ entryId: z.string() }))
   .handler(async ({ context, data }: { context: { user: { id: string } }; data: { entryId: string } }) => {
     const prisma = await getServerSidePrismaClient();
-    const entry = await prisma.foodEntry.findFirst({
+    const result = await prisma.foodEntry.deleteMany({
       where: { id: data.entryId, userId: context.user.id },
     });
-    if (!entry) {
+    if (result.count === 0) {
       return { success: false, error: "Entry not found" };
     }
-    await prisma.foodEntry.delete({ where: { id: data.entryId } });
     return { success: true };
   });
 
@@ -87,27 +86,28 @@ export const getDailyNutritionServerFn = createServerFn()
     const endOfDay = new Date(data.date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const entries = await prisma.foodEntry.findMany({
-      where: {
-        userId: context.user.id,
-        loggedAt: {
-          gte: startOfDay,
-          lte: endOfDay,
-        },
-      },
-    });
+    const whereClause = {
+      userId: context.user.id,
+      loggedAt: { gte: startOfDay, lte: endOfDay },
+    };
 
-    const totals = entries.reduce(
-      (acc, entry) => ({
-        calories: acc.calories + entry.calories,
-        protein: acc.protein + entry.protein,
-        carbs: acc.carbs + entry.carbs,
-        fat: acc.fat + entry.fat,
+    const [entries, aggregates] = await Promise.all([
+      prisma.foodEntry.findMany({ where: whereClause }),
+      prisma.foodEntry.aggregate({
+        where: whereClause,
+        _sum: { calories: true, protein: true, carbs: true, fat: true },
       }),
-      { calories: 0, protein: 0, carbs: 0, fat: 0 },
-    );
+    ]);
 
-    return { entries, totals };
+    return {
+      entries,
+      totals: {
+        calories: aggregates._sum.calories ?? 0,
+        protein: aggregates._sum.protein ?? 0,
+        carbs: aggregates._sum.carbs ?? 0,
+        fat: aggregates._sum.fat ?? 0,
+      },
+    };
   });
 
 export const getCalorieGoalServerFn = createServerFn()
