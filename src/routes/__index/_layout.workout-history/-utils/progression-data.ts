@@ -38,7 +38,7 @@ export function calculateProgressionData(
   return workouts
     .filter((workout) => {
       if (!workout.completedAt) return false;
-      if (!cutoffDate) return true; // All time - no date filtering
+      if (!cutoffDate) return true;
       return new Date(workout.completedAt) >= cutoffDate;
     })
     .map((workout) => {
@@ -63,7 +63,6 @@ export function calculateProgressionData(
 
       const completedDate = new Date(workout.completedAt!);
       return {
-        // Include time to make each point unique for proper chart highlighting
         date: completedDate.toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
@@ -75,7 +74,7 @@ export function calculateProgressionData(
       };
     })
     .filter((point): point is ProgressionDataPoint => point !== null)
-    .reverse(); // Oldest first for chart display
+    .reverse();
 }
 
 /**

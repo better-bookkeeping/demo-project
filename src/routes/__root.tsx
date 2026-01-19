@@ -137,14 +137,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         src: "/config.js",
         type: "text/javascript",
       },
-      // ...(import.meta.env.DEV
-      //   ? [
-      //       {
-      //         src: "//www.react-grab.com/script.js",
-      //         crossOrigin: "anonymous" as const,
-      //       },
-      //     ]
-      //   : []),
     ],
     links: [
       {
