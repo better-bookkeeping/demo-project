@@ -19,13 +19,13 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           className,
         )}
       >
-        <div className="relative">
+        <div className="relative flex items-center justify-center w-5 h-5">
           <input
             ref={ref}
             id={inputId}
             type="checkbox"
             className={cn(
-              "peer w-5 h-5 rounded-md border-2 border-border bg-surface-elevated appearance-none cursor-pointer",
+              "peer absolute inset-0 w-5 h-5 rounded-md border-2 border-border bg-surface-elevated appearance-none cursor-pointer",
               "transition-all duration-200",
               "hover:border-text-muted hover:bg-surface",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary",
@@ -36,8 +36,7 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           />
           <Check
             className={cn(
-              "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-              "w-3.5 h-3.5 text-white stroke-[3]",
+              "w-3 h-3 text-white stroke-[3]",
               "opacity-0 scale-50 transition-all duration-200 pointer-events-none",
               "peer-checked:opacity-100 peer-checked:scale-100",
             )}
