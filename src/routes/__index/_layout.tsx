@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
-import { Dumbbell, History, BicepsFlexed, User, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Dumbbell, History, BicepsFlexed, Scale, Apple, Settings, User, Menu, X } from "lucide-react";
+import { useState } from "react";
 
 export const Route = createFileRoute("/__index/_layout")({
   component: RouteComponent,
@@ -12,45 +12,95 @@ export const Route = createFileRoute("/__index/_layout")({
 
 const navItems = [
   { to: "/current-workout", label: "Current Workout", icon: Dumbbell },
-  { to: "/workout-history", label: "Workout History", icon: History },
+  { to: "/workout-history", label: "History", icon: History },
   { to: "/movements", label: "Movements", icon: BicepsFlexed },
+  { to: "/weight", label: "Weight", icon: Scale },
+  { to: "/nutrition", label: "Nutrition", icon: Apple },
+  { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 function RouteComponent() {
   const { user } = Route.useRouteContext();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <div className="min-h-screen flex bg-slate-50">
-      <nav className="w-64 bg-white border-r border-slate-200 p-4 flex flex-col">
-        <img src="/wordmark.svg" alt="Logo" className="h-6 mb-8" />
-        <div className="flex flex-col gap-1 flex-1">
-          {navItems.map(({ to, label, icon: Icon }) => (
-            <Link
-              key={to}
-              to={to}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors [&.active]:bg-slate-100 [&.active]:text-slate-900">
-              <Icon className="w-4 h-4" />
-              {label}
-            </Link>
-          ))}
+    <div className="h-screen flex flex-col lg:flex-row bg-background overflow-hidden">
+      {/* Mobile Header */}
+      <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-surface border-b border-border-subtle flex-shrink-0">
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2 -ml-2 text-text-secondary hover:text-text-primary transition-colors"
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+        <img src="/wordmark.svg" alt="Better Bookkeeping" className="h-4 brightness-0 invert opacity-90" />
+      </header>
+
+      {/* Mobile Navigation Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 top-[49px] z-40 bg-background/80 backdrop-blur-md"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <nav
+        className={`
+          fixed lg:static inset-y-0 left-0 z-50
+          w-64 bg-surface border-r border-border-subtle
+          transform transition-transform duration-200 ease-out
+          lg:transform-none
+          ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          flex flex-col
+          top-[49px] lg:top-0 h-[calc(100vh-49px)] lg:h-screen
+        `}
+      >
+        {/* Logo - Desktop */}
+        <div className="hidden lg:block px-6 py-5 border-b border-border-subtle">
+          <img src="/wordmark.svg" alt="Better Bookkeeping" className="h-6 brightness-0 invert opacity-90" />
         </div>
-        <div className="border-t border-slate-200 pt-4 mt-4 space-y-2">
-          <div className="flex items-center gap-3 px-3 py-2 text-sm text-slate-600">
-            <User className="w-4 h-4" />
-            <div className="truncate">
-              <p className="text-xs text-slate-400">Logged in as</p>
-              <p className="font-medium truncate">{user.name || user.email}</p>
-            </div>
+
+        {/* Navigation */}
+        <div className="flex-1 min-h-0 overflow-y-auto py-4 px-3">
+          <div className="flex flex-col gap-1">
+            {navItems.map(({ to, label, icon: Icon }) => (
+              <Link
+                key={to}
+                to={to}
+                onClick={() => setMobileMenuOpen(false)}
+                className="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-elevated transition-all duration-150 [&.active]:bg-primary-muted [&.active]:text-primary"
+              >
+                <Icon className="w-[18px] h-[18px] flex-shrink-0 transition-colors" />
+                <span>{label}</span>
+              </Link>
+            ))}
           </div>
-          <a href="/logout">
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-slate-600">
-              <LogOut className="w-4 h-4" />
-              Log out
-            </Button>
-          </a>
+        </div>
+
+        {/* User Section */}
+        <div className="border-t border-border-subtle p-3 flex-shrink-0">
+          <Link
+            to="/settings"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-elevated transition-colors"
+          >
+            <div className="w-8 h-8 rounded-full bg-surface-elevated border border-border flex items-center justify-center flex-shrink-0">
+              <User className="w-4 h-4 text-text-muted" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-text-primary truncate">{user.name || user.email}</p>
+            </div>
+          </Link>
         </div>
       </nav>
-      <main className="flex-1 p-6">
-        <Outlet />
+
+      {/* Main Content */}
+      <main className="flex-1 min-h-0 overflow-y-auto">
+        <div className="p-4 sm:p-6 lg:p-8">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

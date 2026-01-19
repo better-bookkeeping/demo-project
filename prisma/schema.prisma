@@ -7,36 +7,103 @@ datasource db {
   provider = "postgresql"
 }
 
+enum WeightUnit {
+  lbs
+  kg
+}
+
+enum MealType {
+  breakfast
+  lunch
+  dinner
+  snack
+}
+
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  name      String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  password  String
-  workouts  Workout[]
+  id            String        @id @default(uuid())
+  email         String        @unique
+  name          String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  password      String
+  weightUnit    WeightUnit    @default(lbs)
+  calorieGoal   Int?
+  workouts      Workout[]
+  weightEntries WeightEntry[]
+  movements     Movement[]
+  foodEntries   FoodEntry[]
 }
 
 model Movement {
-  id   String @id @default(uuid())
-  name String
-  sets Set[]
+  id           String  @id @default(uuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  isBodyWeight Boolean @default(false)
+  sets         Set[]
+
+  @@unique([userId, name])
+  @@index([userId])
 }
 
 model Workout {
   userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   id          String    @id @default(uuid())
+  createdAt   DateTime  @default(now())
   completedAt DateTime?
   sets        Set[]
+
+  @@index([userId])
 }
 
 model Set {
   id         String   @id @default(uuid())
   workoutId  String
-  workout    Workout  @relation(fields: [workoutId], references: [id])
+  workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
   movementId String
-  movement   Movement @relation(fields: [movementId], references: [id])
+  movement   Movement @relation(fields: [movementId], references: [id], onDelete: Restrict)
   reps       Int
-  weight     Int
+  weight     Float
+  createdAt  DateTime @default(now())
+
+  @@index([workoutId])
+  @@index([movementId])
+}
+
+model WeightEntry {
+  id         String     @id @default(uuid())
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weight     Float
+  unit       WeightUnit @default(lbs)
+  recordedAt DateTime   @default(now())
+  note       String?
+
+  @@index([userId, recordedAt])
+}
+
+model LoginAttempt {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  attempts  Int      @default(0)
+  lockedAt  DateTime?
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model FoodEntry {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mealType  MealType
+  calories  Int
+  protein   Float
+  carbs     Float
+  fat       Float
+  note      String?
+  loggedAt  DateTime @default(now())
+
+  @@index([userId, loggedAt])
 }

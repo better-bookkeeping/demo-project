@@ -45,13 +45,13 @@ ${error.stack || "No stack trace available"}`;
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
-            <AlertTriangle className="w-8 h-8 text-red-600" />
+          <div className="mx-auto w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mb-4">
+            <AlertTriangle className="w-8 h-8 text-destructive" />
           </div>
-          <CardTitle className="text-xl font-semibold text-gray-900">Something went wrong</CardTitle>
+          <CardTitle className="text-xl font-semibold">Something went wrong</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert variant="destructive">
@@ -62,7 +62,7 @@ ${error.stack || "No stack trace available"}`;
                 variant="ghost"
                 size="sm"
                 onClick={copyErrorToClipboard}
-                className="h-6 px-2 text-red-700 hover:bg-red-100">
+                className="h-6 px-2 text-destructive hover:bg-destructive/20">
                 {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
               </Button>
             </div>
@@ -74,7 +74,7 @@ ${error.stack || "No stack trace available"}`;
                   {error.stack && (
                     <details className="mt-2" open>
                       <summary className="cursor-pointer text-sm font-medium">Stack trace</summary>
-                      <pre className="mt-2 text-xs overflow-x-auto bg-red-100 p-2 rounded whitespace-pre-wrap break-words max-w-full">
+                      <pre className="mt-2 text-xs overflow-x-auto bg-destructive/10 p-2 rounded whitespace-pre-wrap break-words max-w-full">
                         {error.stack}
                       </pre>
                     </details>
@@ -102,7 +102,7 @@ ${error.stack || "No stack trace available"}`;
 
           {!isDev && (
             <div className="text-center">
-              <p className="text-sm text-gray-500">Error ID: {Date.now().toString(36)}</p>
+              <p className="text-sm text-text-muted">Error ID: {Date.now().toString(36)}</p>
             </div>
           )}
         </CardContent>
@@ -137,14 +137,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         src: "/config.js",
         type: "text/javascript",
       },
-      // ...(import.meta.env.DEV
-      //   ? [
-      //       {
-      //         src: "//www.react-grab.com/script.js",
-      //         crossOrigin: "anonymous" as const,
-      //       },
-      //     ]
-      //   : []),
     ],
     links: [
       {
@@ -161,7 +153,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap",
       },
     ],
   }),
@@ -178,7 +170,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="overflow-hidden">
         {children}
-        <ToastContainer position="top-right" autoClose={4000} theme="light" />
+        <ToastContainer position="top-right" autoClose={4000} theme="dark" />
         {config.environment === "development" && (
           <TanStackDevtools
             config={{

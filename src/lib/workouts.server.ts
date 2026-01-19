@@ -19,12 +19,12 @@ export const getCurrentWorkoutServerFn = createServerFn()
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     const prisma = await getServerSidePrismaClient();
-    // Get the most recent workout for the user
     const workout = await prisma.workout.findFirst({
       where: { userId: context.user.id, completedAt: null },
-      orderBy: { id: "desc" },
+      orderBy: { createdAt: "desc" },
       include: {
         sets: {
+          orderBy: { createdAt: "asc" },
           include: { movement: true },
         },
       },
@@ -38,9 +38,13 @@ export const completeWorkoutServerFn = createServerFn({ method: "POST" })
     const prisma = await getServerSidePrismaClient();
     const workout = await prisma.workout.findFirst({
       where: { userId: context.user.id, completedAt: null },
+      include: { _count: { select: { sets: true } } },
     });
     if (!workout) {
       return { success: false, error: "No active workout to complete" };
+    }
+    if (workout._count.sets === 0) {
+      return { success: false, error: "Cannot complete a workout with no sets" };
     }
     await prisma.workout.update({
       where: { id: workout.id },
@@ -61,20 +65,26 @@ export const addSetServerFn = createServerFn({ method: "POST" })
       data: { movementId: string; reps: number; weight: number };
     }) => {
       const prisma = await getServerSidePrismaClient();
-      const workout = await prisma.workout.findFirst({
-        where: { userId: context.user.id, completedAt: null },
-      });
-      if (!workout) {
-        return { success: false, error: "No active workout" };
-      }
-      const set = await prisma.set.create({
-        data: {
-          workoutId: workout.id,
-          movementId: data.movementId,
-          reps: data.reps,
-          weight: data.weight,
-        },
-        include: { movement: true },
+      const set = await prisma.$transaction(async (tx) => {
+        const [workout, movement] = await Promise.all([
+          tx.workout.findFirst({ where: { userId: context.user.id, completedAt: null } }),
+          tx.movement.findUnique({ where: { id: data.movementId, userId: context.user.id } }),
+        ]);
+        if (!workout) {
+          throw new Error("No active workout");
+        }
+        if (!movement) {
+          throw new Error("Movement not found");
+        }
+        return tx.set.create({
+          data: {
+            workoutId: workout.id,
+            movementId: data.movementId,
+            reps: data.reps,
+            weight: data.weight,
+          },
+          include: { movement: true },
+        });
       });
       return { success: true, set };
     },
@@ -85,14 +95,12 @@ export const deleteSetServerFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ setId: z.string() }))
   .handler(async ({ context, data }: { context: { user: { id: string } }; data: { setId: string } }) => {
     const prisma = await getServerSidePrismaClient();
-    // Verify the set belongs to the user's active workout
-    const set = await prisma.set.findFirst({
+    const result = await prisma.set.deleteMany({
       where: { id: data.setId, workout: { userId: context.user.id, completedAt: null } },
     });
-    if (!set) {
+    if (result.count === 0) {
       return { success: false, error: "Set not found" };
     }
-    await prisma.set.delete({ where: { id: data.setId } });
     return { success: true };
   });
 
@@ -117,10 +125,6 @@ export const deleteWorkoutsServerFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ workoutIds: z.array(z.string()) }))
   .handler(async ({ context, data }: { context: { user: { id: string } }; data: { workoutIds: string[] } }) => {
     const prisma = await getServerSidePrismaClient();
-    // Delete sets first, then workouts (only for this user's workouts)
-    await prisma.set.deleteMany({
-      where: { workout: { id: { in: data.workoutIds }, userId: context.user.id } },
-    });
     await prisma.workout.deleteMany({
       where: { id: { in: data.workoutIds }, userId: context.user.id },
     });

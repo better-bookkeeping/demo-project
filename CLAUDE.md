@@ -1,9 +1,12 @@
 
 @sessions/CLAUDE.sessions.md
+@AGENTS.md
 
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+See [AGENTS.md](./AGENTS.md) for TDD workflow, E2E test patterns, and conventional commit guidelines.
 
 ## Development Commands
 
@@ -16,11 +19,12 @@ This project uses **Bun** as the package manager and runtime.
 - `bun run dev` - Start development server on port 3000
 - `bun run build` - Build for production
 - `bun run start` - Start production server
-- `bun run test` - Run tests with Vitest
+- `bun run test` - Run E2E tests with Playwright
+- `bun run test:ui` - Run E2E tests with Playwright UI
 
 ### Docker Development
 
-- `bun run dev:docker` or `./scripts/dev.sh up` - Start full Docker development environment (port 3200)
+- `bun run dev:docker` or `./scripts/dev.sh up` - Start full Docker development environment (port 3000)
 - `bun run dev:docker:down` or `./scripts/dev.sh down` - Stop Docker services
 
 The Docker setup uses volume mounts for hot reloading and ensures TypeScript type generation works locally.
@@ -34,7 +38,7 @@ The Docker setup uses volume mounts for hot reloading and ensures TypeScript typ
 - **State Management**: TanStack Query for server state
 - **Forms**: TanStack Form
 - **Styling**: Tailwind CSS v4 + Better Bookkeeping UI component library
-- **Testing**: Vitest + React Testing Library
+- **Testing**: Playwright (E2E) + Vitest (unit)
 - **TypeScript**: Strict mode enabled with path aliases (`@/*`)
 
 ### Project Structure
@@ -153,6 +157,6 @@ The onboarding app **does not handle Stripe webhooks**. Subscription status upda
 
 ## Docker Notes
 
-- Development container runs on port 3200 (maps to internal port 3000)
+- Development container runs on port 3000
 - Uses user ID/group ID mapping for file permissions
 - Volume mounts ensure local development experience with Docker benefits

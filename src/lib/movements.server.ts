@@ -1,20 +1,82 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getServerSidePrismaClient } from "@/lib/db.server";
+import { authMiddleware } from "@/lib/auth.server";
 import { z } from "zod";
 
 export const createMovementServerFn = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ name: z.string().min(1) }))
-  .handler(async ({ data }: { data: { name: string } }) => {
+  .middleware([authMiddleware])
+  .inputValidator(z.object({ name: z.string().trim().min(1), isBodyWeight: z.boolean().optional() }))
+  .handler(
+    async ({
+      context,
+      data,
+    }: {
+      context: { user: { id: string } };
+      data: { name: string; isBodyWeight?: boolean };
+    }) => {
+      const prisma = await getServerSidePrismaClient();
+      const movement = await prisma.movement.create({
+        data: { name: data.name, isBodyWeight: data.isBodyWeight ?? false, userId: context.user.id },
+      });
+      return { success: true, movement };
+    },
+  );
+
+export const getMovementsServerFn = createServerFn()
+  .middleware([authMiddleware])
+  .handler(async ({ context }: { context: { user: { id: string } } }) => {
     const prisma = await getServerSidePrismaClient();
-    const movement = await prisma.movement.create({
-      data: { name: data.name },
+    return prisma.movement.findMany({
+      where: { userId: context.user.id },
+      orderBy: { name: "asc" },
     });
-    return { success: true, movement };
   });
 
-export const getMovementsServerFn = createServerFn().handler(async () => {
-  const prisma = await getServerSidePrismaClient();
-  return prisma.movement.findMany({
-    orderBy: { name: "asc" },
+export const updateMovementServerFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .inputValidator(
+    z.object({
+      id: z.string(),
+      name: z.string().trim().min(1).optional(),
+      isBodyWeight: z.boolean().optional(),
+    }),
+  )
+  .handler(
+    async ({
+      context,
+      data,
+    }: {
+      context: { user: { id: string } };
+      data: { id: string; name?: string; isBodyWeight?: boolean };
+    }) => {
+      const prisma = await getServerSidePrismaClient();
+      const movement = await prisma.movement.update({
+        where: { id: data.id, userId: context.user.id },
+        data: {
+          ...(data.name !== undefined && { name: data.name }),
+          ...(data.isBodyWeight !== undefined && { isBodyWeight: data.isBodyWeight }),
+        },
+      });
+      return { success: true, movement };
+    },
+  );
+
+export const deleteMovementServerFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .inputValidator(z.object({ id: z.string() }))
+  .handler(async ({ context, data }: { context: { user: { id: string } }; data: { id: string } }) => {
+    const prisma = await getServerSidePrismaClient();
+    return prisma.$transaction(async (tx) => {
+      const setsCount = await tx.set.count({ where: { movementId: data.id } });
+      if (setsCount > 0) {
+        return { success: false, error: "Cannot delete movement with existing sets" };
+      }
+      const deleted = await tx.movement.deleteMany({
+        where: { id: data.id, userId: context.user.id },
+      });
+      if (deleted.count === 0) {
+        return { success: false, error: "Movement not found" };
+      }
+      return { success: true };
+    });
   });
-});

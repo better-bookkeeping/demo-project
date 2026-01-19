@@ -1,5 +1,106 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: oklch(37.8% 0.077 168.94);
+  /* Primary - Warm Coral (refined, less saturated) */
+  --color-primary: oklch(65% 0.18 25);
+  --color-primary-hover: oklch(70% 0.20 25);
+  --color-primary-muted: oklch(65% 0.18 25 / 0.15);
+
+  /* Dark Surfaces - Cool neutral with subtle blue undertone */
+  --color-background: oklch(12% 0.01 250);
+  --color-surface: oklch(16% 0.012 250);
+  --color-surface-elevated: oklch(20% 0.015 250);
+  --color-border: oklch(25% 0.01 250);
+  --color-border-subtle: oklch(20% 0.008 250);
+
+  /* Text - Warm whites for better contrast against cool backgrounds */
+  --color-text-primary: oklch(95% 0.01 80);
+  --color-text-secondary: oklch(65% 0.01 250);
+  --color-text-muted: oklch(45% 0.01 250);
+
+  /* Semantic - Muted, refined */
+  --color-success: oklch(70% 0.15 155);
+  --color-warning: oklch(75% 0.14 70);
+  --color-destructive: oklch(60% 0.18 20);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-text-primary antialiased;
+    font-family: "Inter", "SF Pro Display", -apple-system, system-ui, sans-serif;
+  }
+
+  /* Dark mode for native form controls */
+  select,
+  select option {
+    color-scheme: dark;
+    background-color: oklch(20% 0.015 250);
+    color: oklch(95% 0.01 80);
+  }
+
+  select option:checked,
+  select option:hover {
+    background-color: oklch(65% 0.18 25);
+    color: white;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  /* Custom Scrollbar - Minimal */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(25% 0.01 250) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: oklch(25% 0.01 250);
+    border-radius: 3px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: oklch(35% 0.01 250);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Focus styles */
+  :focus-visible {
+    outline: 2px solid oklch(65% 0.18 25 / 0.5);
+    outline-offset: 2px;
+  }
+}
+
+/* Utility classes for glow effects */
+@layer utilities {
+  .glow-primary {
+    box-shadow: 0 0 20px oklch(65% 0.18 25 / 0.3);
+  }
+
+  .glow-primary-sm {
+    box-shadow: 0 0 10px oklch(65% 0.18 25 / 0.2);
+  }
 }

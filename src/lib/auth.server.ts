@@ -1,31 +1,61 @@
 import crypto from "node:crypto";
+import { hash, verify } from "argon2";
 import { redirect } from "@tanstack/react-router";
 import { getCookie, setCookie, deleteCookie } from "@tanstack/react-start/server";
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { sessionCookieName } from "./auth.consts";
 import { getServerSidePrismaClient } from "./db.server";
+import { checkRateLimit, recordFailedAttempt, resetAttempts } from "./rate-limit.server";
 import { z } from "zod";
 
-// In production, use a proper secret from environment variables
-const COOKIE_SECRET = process.env.COOKIE_SECRET || "dev-secret-change-in-production";
+// Cookie secret must be set in production
+function getCookieSecret(): string {
+  const secret = process.env.COOKIE_SECRET;
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("COOKIE_SECRET environment variable is required in production");
+  }
+  return secret || "dev-secret-change-in-production";
+}
+
+const COOKIE_SECRET = getCookieSecret();
+
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**
- * Signs a user ID to create a tamper-proof session token
+ * Creates a tamper-proof session token with embedded expiry
+ * Token format: userId.expiresAt.signature
  */
-function signUserId(userId: string): string {
-  const signature = crypto.createHmac("sha256", COOKIE_SECRET).update(userId).digest("hex");
-  return `${userId}.${signature}`;
+function createSessionToken(userId: string, expiresAt: Date): string {
+  const expiresAtUnix = Math.floor(expiresAt.getTime() / 1000);
+  const payload = `${userId}.${expiresAtUnix}`;
+  const signature = crypto.createHmac("sha256", COOKIE_SECRET).update(payload).digest("hex");
+  return `${payload}.${signature}`;
 }
 
 /**
- * Verifies a signed session token and returns the user ID if valid
+ * Verifies a session token and returns the user ID if valid and not expired
+ * Uses timing-safe comparison to prevent timing attacks
  */
 function verifySessionToken(token: string): string | null {
-  const [userId, signature] = token.split(".");
-  if (!userId || !signature) return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
 
-  const expectedSignature = crypto.createHmac("sha256", COOKIE_SECRET).update(userId).digest("hex");
-  if (signature !== expectedSignature) return null;
+  const [userId, expiresAtStr, signature] = parts;
+  if (!userId || !expiresAtStr || !signature) return null;
+
+  // Verify signature
+  const payload = `${userId}.${expiresAtStr}`;
+  const expectedSignature = crypto.createHmac("sha256", COOKIE_SECRET).update(payload).digest("hex");
+
+  const signatureBuffer = Buffer.from(signature, "hex");
+  const expectedBuffer = Buffer.from(expectedSignature, "hex");
+
+  if (signatureBuffer.length !== expectedBuffer.length) return null;
+  if (!crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) return null;
+
+  // Verify expiry
+  const expiresAt = parseInt(expiresAtStr, 10) * 1000;
+  if (isNaN(expiresAt) || Date.now() > expiresAt) return null;
 
   return userId;
 }
@@ -34,8 +64,8 @@ function verifySessionToken(token: string): string | null {
  * Sets the session cookie for a user (internal use only)
  */
 function setSessionCookie(userId: string) {
-  const token = signUserId(userId);
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+  const token = createSessionToken(userId, expiresAt);
 
   setCookie(sessionCookieName, token, {
     httpOnly: true,
@@ -70,21 +100,48 @@ export const getUserServerFn = createServerFn().handler(async () => {
 
 /**
  * Signs in a user with email and password
+ * Rate limited: 5 failed attempts triggers 15-minute lockout
  */
 export const signInServerFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ email: z.string().email(), password: z.string() }))
   .handler(async ({ data }: { data: { email: string; password: string } }) => {
     const { email, password } = data;
 
+    // Check rate limit before processing
+    const rateLimitResult = await checkRateLimit(email);
+    if (!rateLimitResult.allowed) {
+      const retryMinutes = Math.ceil(rateLimitResult.retryAfterMs / 60000);
+      return {
+        success: false as const,
+        error: `Too many login attempts. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? "" : "s"}.`,
+      };
+    }
+
     const prisma = await getServerSidePrismaClient();
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!user || user.password !== password) {
+    if (!user) {
+      // Record failed attempt even for non-existent users (prevents enumeration)
+      await recordFailedAttempt(email);
       return { success: false as const, error: "Invalid email or password" };
     }
 
+    const isValidPassword = await verify(user.password, password);
+    if (!isValidPassword) {
+      const result = await recordFailedAttempt(email);
+      if (result.locked) {
+        return {
+          success: false as const,
+          error: "Too many login attempts. Please try again in 15 minutes.",
+        };
+      }
+      return { success: false as const, error: "Invalid email or password" };
+    }
+
+    // Successful login - reset attempts
+    await resetAttempts(email);
     setSessionCookie(user.id);
 
     return { success: true as const };
@@ -94,7 +151,7 @@ export const signInServerFn = createServerFn({ method: "POST" })
  * Creates a new user account
  */
 export const createAccountServerFn = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ email: z.email(), name: z.string().min(1), password: z.string().min(6) }))
+  .inputValidator(z.object({ email: z.email(), name: z.string().trim().min(1), password: z.string().min(6) }))
   .handler(async ({ data }: { data: { email: string; name: string; password: string } }) => {
     const { email, name, password } = data;
 
@@ -105,11 +162,12 @@ export const createAccountServerFn = createServerFn({ method: "POST" })
     });
 
     if (existingUser) {
-      return { success: false as const, error: "An account with this email already exists" };
+      return { success: false as const, error: "Unable to create account. Please try again." };
     }
 
+    const hashedPassword = await hash(password);
     const user = await prisma.user.create({
-      data: { email, name, password },
+      data: { email, name, password: hashedPassword },
     });
 
     setSessionCookie(user.id);
@@ -139,3 +197,18 @@ export const authMiddleware = createMiddleware({ type: "function" }).server(asyn
     context: { user },
   });
 });
+
+/**
+ * Updates the current user's name
+ */
+export const updateUserNameServerFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .inputValidator(z.object({ name: z.string().trim().min(1).max(100) }))
+  .handler(async ({ context, data }: { context: { user: { id: string } }; data: { name: string } }) => {
+    const prisma = await getServerSidePrismaClient();
+    await prisma.user.update({
+      where: { id: context.user.id },
+      data: { name: data.name },
+    });
+    return { success: true };
+  });
