@@ -17,7 +17,9 @@ async function createWorkoutWithSets(
     await page.getByPlaceholder("Weight").fill(movement.weight.toString());
     await page.getByPlaceholder("Reps").fill(movement.reps.toString());
     await page.getByRole("button", { name: "Add" }).click();
-    await page.waitForLoadState("networkidle");
+    // Wait for form to reset (reps field clears after successful add)
+    await page.getByPlaceholder("Reps").waitFor({ state: "visible" });
+    await expect(page.getByPlaceholder("Reps")).toHaveValue("");
   }
 
   await page.getByRole("button", { name: "Complete Workout" }).click();

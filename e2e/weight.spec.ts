@@ -44,7 +44,7 @@ test.describe("Weight Tracking", () => {
       for (const weight of ["180", "182", "181"]) {
         await authenticatedPage.getByPlaceholder("Enter weight").fill(weight);
         await authenticatedPage.getByRole("button", { name: "Record" }).click();
-        await expect(authenticatedPage.getByText(weight)).toBeVisible();
+        await expect(authenticatedPage.getByRole("cell", { name: weight })).toBeVisible();
       }
 
       // Verify table has all entries
