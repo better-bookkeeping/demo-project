@@ -45,7 +45,7 @@ test.describe("Authentication", () => {
       await page.getByLabel("Password").fill("differentpassword");
       await page.getByRole("button", { name: "Create account" }).click();
 
-      await expect(page.getByText(/already exists/i)).toBeVisible();
+      await expect(page.getByText(/unable to create account/i)).toBeVisible();
 
       await cleanupTestUser(user.email);
     });

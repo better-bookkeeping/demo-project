@@ -139,7 +139,7 @@ export const createAccountServerFn = createServerFn({ method: "POST" })
     });
 
     if (existingUser) {
-      return { success: false as const, error: "An account with this email already exists" };
+      return { success: false as const, error: "Unable to create account. Please try again." };
     }
 
     const hashedPassword = await hash(password);
