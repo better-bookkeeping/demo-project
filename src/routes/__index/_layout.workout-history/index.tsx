@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { deleteWorkoutsServerFn } from "@/lib/workouts.server";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { workoutHistoryQueryOptions, weightUnitQueryOptions } from "./-queries/workout-history";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -16,44 +16,65 @@ import {
   type ProgressionMetric,
 } from "./-utils/progression-data";
 
+const PAGE_SIZE = 10;
+
 export const Route = createFileRoute("/__index/_layout/workout-history/")({
   loader: async ({ context }) => {
     await Promise.all([
-      context.queryClient.ensureQueryData(workoutHistoryQueryOptions()),
-      context.queryClient.ensureQueryData(weightUnitQueryOptions()),
+      context.queryClient.ensureQueryData(workoutHistoryQueryOptions(context.user.id)),
+      context.queryClient.ensureQueryData(weightUnitQueryOptions(context.user.id)),
     ]);
   },
   component: WorkoutHistoryPage,
 });
 
 function WorkoutHistoryPage() {
+  const { user } = Route.useRouteContext();
   const queryClient = useQueryClient();
-  const { data: workouts } = useSuspenseQuery(workoutHistoryQueryOptions());
-  const { data: weightUnit } = useSuspenseQuery(weightUnitQueryOptions());
+  const { data: workouts } = useSuspenseQuery(workoutHistoryQueryOptions(user.id));
+  const { data: weightUnit } = useSuspenseQuery(weightUnitQueryOptions(user.id));
   const [selectedWorkouts, setSelectedWorkouts] = useState<Set<string>>(new Set());
   const [selectedMovement, setSelectedMovement] = useState<string>("all");
   const [selectedMetric, setSelectedMetric] = useState<ProgressionMetric>("max_weight");
   const [selectedDays, setSelectedDays] = useState<number | null>(30);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const chartMovements = getUniqueMovements(workouts);
-  const chartData = calculateProgressionData(
-    workouts,
-    selectedMovement === "all" ? null : selectedMovement,
-    selectedMetric,
-    selectedDays,
+  // Memoized computations to avoid recalculating on every render
+  const chartMovements = useMemo(() => getUniqueMovements(workouts), [workouts]);
+
+  const chartData = useMemo(
+    () =>
+      calculateProgressionData(
+        workouts,
+        selectedMovement === "all" ? null : selectedMovement,
+        selectedMetric,
+        selectedDays,
+      ),
+    [workouts, selectedMovement, selectedMetric, selectedDays],
   );
+
+  const uniqueMovements = useMemo(
+    () =>
+      Array.from(
+        new Map(workouts.flatMap((w) => w.sets.map((s) => [s.movement.id, s.movement.name]))).entries(),
+      ).sort((a, b) => a[1].localeCompare(b[1])),
+    [workouts],
+  );
+
+  // Pagination
+  const totalPages = Math.ceil(workouts.length / PAGE_SIZE);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginatedWorkouts = workouts.slice(startIndex, startIndex + PAGE_SIZE);
 
   const deleteWorkoutsMutation = useMutation({
     mutationFn: (workoutIds: string[]) => deleteWorkoutsServerFn({ data: { workoutIds } }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: workoutHistoryQueryOptions().queryKey });
+      queryClient.invalidateQueries({ queryKey: workoutHistoryQueryOptions(user.id).queryKey });
       setSelectedWorkouts(new Set());
+      // Reset to page 1 if current page would be empty after deletion
+      setCurrentPage(1);
     },
   });
-
-  const uniqueMovements = Array.from(
-    new Map(workouts.flatMap((w) => w.sets.map((s) => [s.movement.id, s.movement.name]))).entries(),
-  ).sort((a, b) => a[1].localeCompare(b[1]));
 
   const toggleWorkout = (id: string) => {
     setSelectedWorkouts((prev) => {
@@ -67,12 +88,20 @@ function WorkoutHistoryPage() {
     });
   };
 
+  const allPageWorkoutsSelected = paginatedWorkouts.every((w) => selectedWorkouts.has(w.id));
+
   const toggleAll = () => {
-    if (selectedWorkouts.size === workouts.length) {
-      setSelectedWorkouts(new Set());
-    } else {
-      setSelectedWorkouts(new Set(workouts.map((w) => w.id)));
-    }
+    setSelectedWorkouts((prev) => {
+      const next = new Set(prev);
+      if (allPageWorkoutsSelected) {
+        // Deselect all on current page
+        paginatedWorkouts.forEach((w) => next.delete(w.id));
+      } else {
+        // Select all on current page
+        paginatedWorkouts.forEach((w) => next.add(w.id));
+      }
+      return next;
+    });
   };
 
   const handleDeleteSelected = () => {
@@ -196,7 +225,7 @@ function WorkoutHistoryPage() {
                   <tr className="border-b border-border-subtle">
                     <th className="py-2 px-2 w-8">
                       <Checkbox
-                        checked={selectedWorkouts.size === workouts.length}
+                        checked={allPageWorkoutsSelected && paginatedWorkouts.length > 0}
                         onChange={toggleAll}
                       />
                     </th>
@@ -210,7 +239,7 @@ function WorkoutHistoryPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {workouts.map((workout) => {
+                  {paginatedWorkouts.map((workout) => {
                     const setsByMovement = new Map<string, typeof workout.sets>();
                     workout.sets.forEach((set) => {
                       const existing = setsByMovement.get(set.movement.id) || [];
@@ -271,6 +300,40 @@ function WorkoutHistoryPage() {
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {workouts.length > PAGE_SIZE && (
+            <div className="flex items-center justify-between pt-4 border-t border-border-subtle mt-4">
+              <p className="text-xs text-text-muted">
+                Showing {startIndex + 1}-{Math.min(startIndex + PAGE_SIZE, workouts.length)} of {workouts.length}
+              </p>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="h-8 w-8"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span className="sr-only">Previous page</span>
+                </Button>
+                <span className="text-xs text-text-secondary px-2">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                  <span className="sr-only">Next page</span>
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
