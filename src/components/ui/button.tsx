@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 
 type ButtonVariant = "default" | "outline" | "ghost" | "destructive" | "secondary" | "link";
-type ButtonSize = "default" | "sm" | "lg" | "icon";
+type ButtonSize = "default" | "sm" | "lg" | "icon" | "athletic";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -10,19 +10,25 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  default: "bg-primary text-white hover:bg-primary/90 shadow-sm",
-  outline: "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400",
-  ghost: "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
-  destructive: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
-  secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
-  link: "text-primary underline-offset-4 hover:underline",
+  default:
+    "bg-primary text-white font-medium hover:bg-primary-hover active:scale-[0.98]",
+  outline:
+    "border border-border bg-transparent text-text-primary font-medium hover:bg-surface-elevated hover:border-text-muted",
+  ghost:
+    "text-text-secondary font-medium hover:bg-surface-elevated hover:text-text-primary",
+  destructive:
+    "bg-destructive text-white font-medium hover:bg-destructive/90 active:scale-[0.98]",
+  secondary:
+    "bg-surface-elevated text-text-primary font-medium hover:bg-border",
+  link: "text-primary hover:underline underline-offset-4 font-medium",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  default: "h-10 px-4 py-2",
-  sm: "h-8 px-3 text-sm",
-  lg: "h-12 px-6 text-lg",
-  icon: "h-10 w-10",
+  default: "h-9 px-4 text-sm",
+  sm: "h-8 px-3 text-xs",
+  lg: "h-11 px-5 text-sm",
+  icon: "h-9 w-9",
+  athletic: "h-11 px-6 text-sm",
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -31,8 +37,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       disabled={disabled}
       className={cn(
-        "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2",
+        "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg transition-all duration-150",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "disabled:pointer-events-none disabled:opacity-50",
         "[&>svg]:pointer-events-none [&>svg]:shrink-0",
         variantStyles[variant],
