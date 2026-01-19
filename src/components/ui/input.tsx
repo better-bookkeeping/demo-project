@@ -14,7 +14,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({ className, type = "tex
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary",
       "disabled:cursor-not-allowed disabled:opacity-50",
       "transition-colors duration-150",
-      type === "number" && "font-mono tabular-nums",
+      type === "number" && "font-mono tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
       className,
     )}
     {...props}
