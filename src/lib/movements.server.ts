@@ -14,7 +14,8 @@ export const createMovementServerFn = createServerFn({ method: "POST" })
 
 export const getMovementsServerFn = createServerFn().handler(async () => {
   const prisma = await getServerSidePrismaClient();
-  return prisma.movement.findMany({
+  const movements = await prisma.movement.findMany({
     orderBy: { name: "asc" },
   });
+  return movements;
 });

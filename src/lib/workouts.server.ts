@@ -19,7 +19,6 @@ export const getCurrentWorkoutServerFn = createServerFn()
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     const prisma = await getServerSidePrismaClient();
-    // Get the most recent workout for the user
     const workout = await prisma.workout.findFirst({
       where: { userId: context.user.id, completedAt: null },
       orderBy: { id: "desc" },
