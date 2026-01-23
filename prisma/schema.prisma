@@ -14,7 +14,18 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   passwordHash String
+  weights      Weight[]
   workouts     Workout[]
+}
+
+model Weight {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  value      Float
+  recordedAt DateTime @default(now())
+
+  @@index([userId, recordedAt])
 }
 
 model Movement {
