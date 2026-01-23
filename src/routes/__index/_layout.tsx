@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
-import { Dumbbell, History, BicepsFlexed, User, LogOut } from "lucide-react";
+import { Dumbbell, History, BicepsFlexed, User, LogOut, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/__index/_layout")({
@@ -14,12 +14,13 @@ const navItems = [
   { to: "/current-workout", label: "Current Workout", icon: Dumbbell },
   { to: "/workout-history", label: "Workout History", icon: History },
   { to: "/movements", label: "Movements", icon: BicepsFlexed },
+  { to: "/weight-tracking", label: "Weight Tracking", icon: TrendingUp },
 ] as const;
 
 function RouteComponent() {
   const { user } = Route.useRouteContext();
   return (
-    <div className="min-h-screen flex bg-slate-50">
+    <div className="h-screen flex bg-slate-50">
       <nav className="w-64 bg-white border-r border-slate-200 p-4 flex flex-col">
         <img src="/wordmark.svg" alt="Logo" className="h-6 mb-8" />
         <div className="flex flex-col gap-1 flex-1">
@@ -49,7 +50,7 @@ function RouteComponent() {
           </a>
         </div>
       </nav>
-      <main className="flex-1 p-6">
+      <main className="flex-1 overflow-y-auto p-6">
         <Outlet />
       </main>
     </div>
