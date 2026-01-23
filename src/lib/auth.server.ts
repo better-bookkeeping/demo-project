@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import argon2 from "argon2";
 import { redirect } from "@tanstack/react-router";
 import { getCookie, setCookie, deleteCookie } from "@tanstack/react-start/server";
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
@@ -6,8 +7,9 @@ import { sessionCookieName } from "./auth.consts";
 import { getServerSidePrismaClient } from "./db.server";
 import { z } from "zod";
 
-// In production, use a proper secret from environment variables
-const COOKIE_SECRET = process.env.COOKIE_SECRET || "dev-secret-change-in-production";
+// Environment variables - set via .env.local or Docker env_file
+// Using non-null assertion since this code only runs server-side
+const COOKIE_SECRET = process.env.COOKIE_SECRET!;
 
 /**
  * Signs a user ID to create a tamper-proof session token
@@ -81,7 +83,12 @@ export const signInServerFn = createServerFn({ method: "POST" })
       where: { email },
     });
 
-    if (!user || user.password !== password) {
+    if (!user || !user.passwordHash) {
+      return { success: false as const, error: "Invalid email or password" };
+    }
+
+    const passwordMatch = await argon2.verify(user.passwordHash, password);
+    if (!passwordMatch) {
       return { success: false as const, error: "Invalid email or password" };
     }
 
@@ -108,8 +115,10 @@ export const createAccountServerFn = createServerFn({ method: "POST" })
       return { success: false as const, error: "An account with this email already exists" };
     }
 
+    const passwordHash = await argon2.hash(password);
+
     const user = await prisma.user.create({
-      data: { email, name, password },
+      data: { email, name, passwordHash },
     });
 
     setSessionCookie(user.id);

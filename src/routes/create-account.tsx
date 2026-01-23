@@ -28,16 +28,13 @@ function CreateAccountPage() {
     setIsLoading(true);
 
     try {
-      console.log("Creating account", { email, name, password });
       const result = await createAccountServerFn({ data: { email, name, password } });
-      console.log("Result", result);
       if (result.success) {
         router.navigate({ to: "/" });
       } else {
         setError(result.error || "Account creation failed");
       }
     } catch (error) {
-      console.error("Error creating account", error);
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);

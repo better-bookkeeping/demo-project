@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev:local": "bunx vite",
     "dev": "./scripts/dev.sh up",
     "dev:down": "./scripts/dev.sh down",
     "db:migrate": "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/demo_project prisma migrate dev",
@@ -28,6 +29,7 @@
     "@tanstack/react-router-ssr-query": "^1.139.3",
     "@tanstack/react-start": "^1.139.3",
     "@tanstack/router-plugin": "^1.139.3",
+    "argon2": "^0.44.0",
     "lucide-react": "^0.562.0",
     "motion": "^12.26.2",
     "nitro": "^3.0.1-alpha.1",
@@ -48,6 +50,7 @@
     "@tanstack/router-cli": "^1.139.14",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.0",
+    "@types/argon2": "^0.15.4",
     "@types/bun": "^1.3.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
