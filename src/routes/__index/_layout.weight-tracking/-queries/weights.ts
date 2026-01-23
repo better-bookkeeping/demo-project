@@ -1,0 +1,14 @@
+import { getLatestWeightServerFn, getWeightHistoryServerFn } from "@/lib/weights.server";
+import { queryOptions } from "@tanstack/react-query";
+
+export const weightHistoryQueryOptions = () =>
+  queryOptions({
+    queryKey: ["weightHistory"],
+    queryFn: async () => getWeightHistoryServerFn(),
+  });
+
+export const latestWeightQueryOptions = () =>
+  queryOptions({
+    queryKey: ["latestWeight"],
+    queryFn: async () => getLatestWeightServerFn(),
+  });
