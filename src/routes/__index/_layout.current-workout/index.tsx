@@ -16,6 +16,7 @@ import { useSuspenseQuery, useMutation, useQueryClient, useQuery } from "@tansta
 import { currentWorkoutQueryOptions, movementsQueryOptions } from "./-queries/current-workout";
 import { usePersonalRecords, checkForPR, isBetterSet } from "@/hooks/use-personal-records";
 import { cn } from "@/lib/utils";
+import { getLatestWeightServerFn } from "@/lib/weights.server";
 
 export const Route = createFileRoute("/__index/_layout/current-workout/")({
   loader: async ({ context }) => {
@@ -87,6 +88,29 @@ function CurrentWorkoutPage() {
     }
   }, [showPRBanner]);
 
+  const handleMovementChange = async (movementId: string) => {
+    setSelectedMovement(movementId);
+
+    if (!movementId) {
+      setWeight("");
+      return;
+    }
+
+    const movement = movements.find((m) => m.id === movementId);
+    if (movement?.isBodyWeight) {
+      try {
+        const latestWeight = await getLatestWeightServerFn();
+        if (latestWeight) {
+          setWeight(latestWeight.value.toString());
+        }
+      } catch {
+        // Silently fail - user can still enter weight manually
+      }
+    } else {
+      setWeight("");
+    }
+  };
+
   const createWorkoutMutation = useMutation({
     mutationFn: () => createWorkoutServerFn(),
     onSuccess: () => {
@@ -107,7 +131,7 @@ function CurrentWorkoutPage() {
       queryClient.invalidateQueries({ queryKey: currentWorkoutQueryOptions().queryKey });
       setReps("");
 
-      if (result.success && result.set) {
+      if (result.success && result.set && workout) {
         const prCheck = checkForPR(
           { weight: result.set.weight, reps: result.set.reps, movementId: result.set.movementId },
           personalRecords,
@@ -139,7 +163,7 @@ function CurrentWorkoutPage() {
     addSetMutation.mutate({
       movementId: selectedMovement,
       reps: parseInt(reps),
-      weight: parseInt(weight),
+      weight: parseFloat(weight),
     });
   };
 
@@ -177,8 +201,7 @@ function CurrentWorkoutPage() {
         <Button
           onClick={() => createWorkoutMutation.mutate()}
           size="lg"
-          className="h-16 px-12 text-xl skew-x-[-10deg] shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] transition-all"
-        >
+          className="h-16 px-12 text-xl skew-x-[-10deg] shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] transition-all">
           <div className="skew-x-[10deg] flex items-center">
             <Play className="w-6 h-6 mr-3 fill-current" />
             {createWorkoutMutation.isPending ? "Initializing..." : "Start Session"}
@@ -223,8 +246,7 @@ function CurrentWorkoutPage() {
           <Button
             variant="outline"
             onClick={handleFinish}
-            className="h-12 w-full sm:w-auto border-primary/50 text-primary hover:bg-primary hover:text-white transition-all shadow-[0_0_15px_rgba(249,115,22,0.1)]"
-          >
+            className="h-12 w-full sm:w-auto border-primary/50 text-primary hover:bg-primary hover:text-white transition-all shadow-[0_0_15px_rgba(249,115,22,0.1)]">
             <Check className="w-5 h-5 mr-2" />
             {completeWorkoutMutation.isPending ? "Finishing..." : "Finish Workout"}
           </Button>
@@ -242,7 +264,8 @@ function CurrentWorkoutPage() {
             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
             <Weight className="w-5 h-5 text-steel-500 mb-2 group-hover:text-primary transition-colors" />
             <p className="text-2xl sm:text-4xl font-heading font-bold text-white tabular-nums">
-              {(totalVolume / 1000).toFixed(1)}<span className="text-base sm:text-lg text-steel-600">k</span>
+              {(totalVolume / 1000).toFixed(1)}
+              <span className="text-base sm:text-lg text-steel-600">k</span>
             </p>
             <p className="text-[10px] sm:text-xs font-bold text-steel-500 uppercase tracking-wider">Volume (lbs)</p>
           </div>
@@ -268,14 +291,18 @@ function CurrentWorkoutPage() {
           <form onSubmit={handleAddSet} className="space-y-6">
             <div className="space-y-2">
               <label className="text-xs font-bold text-steel-400 uppercase tracking-wider ml-1">Movement</label>
-              <Select value={selectedMovement} onValueChange={setSelectedMovement}>
+              <Select value={selectedMovement} onValueChange={handleMovementChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select movement..." />
                 </SelectTrigger>
                 <SelectContent>
                   {movements.map((m) => (
                     <SelectItem key={m.id} value={m.id}>
-                      {m.name}
+                      <span className="flex items-center gap-2">
+                        {m.name}
+
+                        {m.isBodyWeight && <span className="text-[10px] text-primary">(BW)</span>}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -294,8 +321,7 @@ function CurrentWorkoutPage() {
                     placeholder="0"
                     min={0}
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-1">
-                  </div>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-1"></div>
                 </div>
               </div>
 
@@ -315,8 +341,7 @@ function CurrentWorkoutPage() {
             <Button
               type="submit"
               disabled={!selectedMovement || !reps || !weight}
-              className="w-full h-12 text-lg shadow-lg shadow-primary/10"
-            >
+              className="w-full h-12 text-lg shadow-lg shadow-primary/10">
               <Plus className="w-5 h-5 mr-2" />
               {addSetMutation.isPending ? "Logging..." : "Log Set"}
             </Button>
@@ -361,15 +386,16 @@ function CurrentWorkoutPage() {
                           isPR ? "border-l-primary" : "border-l-steel-600",
                           isCelebrating && "pr-celebration z-10 scale-[1.02]",
                           "hover:translate-x-1",
-                        )}
-                      >
+                        )}>
                         <div className="flex items-center p-3 sm:p-4">
                           <div className="w-8 h-8 flex items-center justify-center bg-steel-900 rounded font-mono text-sm text-steel-500 mr-4 font-bold border border-steel-800">
                             {index + 1}
                           </div>
 
                           <div className="flex-1 flex items-baseline gap-1">
-                            <span className="text-2xl font-heading font-bold text-white tabular-nums">{set.weight}</span>
+                            <span className="text-2xl font-heading font-bold text-white tabular-nums">
+                              {set.weight}
+                            </span>
                             <span className="text-xs font-bold text-steel-500 uppercase mr-4">lbs</span>
 
                             <span className="text-steel-600 mx-2 text-lg">×</span>
@@ -389,8 +415,7 @@ function CurrentWorkoutPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => deleteSetMutation.mutate(set.id)}
-                            className="text-steel-600 hover:text-error hover:bg-error/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
+                            className="text-steel-600 hover:text-error hover:bg-error/10 opacity-0 group-hover:opacity-100 transition-opacity">
                             <X className="w-5 h-5" />
                           </Button>
                         </div>
@@ -420,17 +445,10 @@ function CurrentWorkoutPage() {
             </p>
 
             <div className="flex gap-3 pt-2">
-              <Button
-                variant="ghost"
-                onClick={() => setShowFinishAlert(false)}
-                className="flex-1"
-              >
+              <Button variant="ghost" onClick={() => setShowFinishAlert(false)} className="flex-1">
                 Cancel
               </Button>
-              <Button
-                onClick={confirmFinish}
-                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white border-none"
-              >
+              <Button onClick={confirmFinish} className="flex-1 bg-amber-600 hover:bg-amber-700 text-white border-none">
                 Finish Anyway
               </Button>
             </div>
