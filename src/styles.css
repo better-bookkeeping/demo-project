@@ -1,65 +1,99 @@
 @import "tailwindcss";
 
 @theme {
-  /* Primary - Vibrant growth green */
-  --color-primary: oklch(45% 0.12 145);
-  --color-primary-foreground: oklch(98% 0.01 145);
+  /* Fonts */
+  --font-sans: "Barlow", sans-serif;
+  --font-heading: "Barlow Condensed", sans-serif;
 
-  /* Accent - Copper/amber for highlights */
-  --color-accent: oklch(65% 0.14 55);
-  --color-accent-foreground: oklch(25% 0.04 55);
+  /* Primary - Neon Orange for main actions (#F97316) */
+  --color-primary: oklch(69% 0.23 35);
+  --color-primary-foreground: oklch(98% 0.01 25);
 
-  /* Stone neutrals (warm-tinted) */
-  --color-stone-50: oklch(98% 0.005 80);
-  --color-stone-100: oklch(96% 0.008 80);
-  --color-stone-200: oklch(92% 0.012 80);
-  --color-stone-300: oklch(87% 0.015 75);
-  --color-stone-400: oklch(70% 0.018 70);
-  --color-stone-500: oklch(55% 0.02 65);
-  --color-stone-600: oklch(45% 0.018 60);
-  --color-stone-700: oklch(35% 0.015 55);
-  --color-stone-800: oklch(25% 0.012 50);
-  --color-stone-900: oklch(18% 0.01 45);
+  /* Secondary - Success Green (#22C55E) */
+  --color-secondary: oklch(65% 0.18 145);
+  --color-secondary-foreground: oklch(98% 0.01 25);
 
-  /* Page background */
-  --color-page-bg: oklch(96% 0.01 80);
+  /* Accent - Concrete Gray */
+  --color-accent: oklch(60% 0.01 250);
+  --color-accent-foreground: oklch(98% 0.01 25);
 
-  /* Card surface */
-  --color-card: oklch(99% 0.003 80);
+  /* Backgrounds - Deep Carbon to Slate */
+  --color-page-bg: #09090b;
+  --color-card: #18181b;
+  --color-card-elevated: #27272a;
 
   /* Semantic colors */
-  --color-success: oklch(50% 0.14 145);
-  --color-warning: oklch(70% 0.15 75);
-  --color-error: oklch(55% 0.2 25);
+  --color-success: #22C55E;
+  --color-warning: oklch(75% 0.15 75);
+  --color-error: oklch(60% 0.22 25);
 
-  /* Warm-tinted shadows */
-  --shadow-warm-sm: 0 1px 2px 0 oklch(35% 0.015 55 / 0.05);
-  --shadow-warm: 0 1px 3px 0 oklch(35% 0.015 55 / 0.1), 0 1px 2px -1px oklch(35% 0.015 55 / 0.1);
-  --shadow-warm-md: 0 4px 6px -1px oklch(35% 0.015 55 / 0.1), 0 2px 4px -2px oklch(35% 0.015 55 / 0.1);
-  --shadow-warm-lg: 0 10px 15px -3px oklch(35% 0.015 55 / 0.1), 0 4px 6px -4px oklch(35% 0.015 55 / 0.1);
-  --shadow-warm-xl: 0 20px 25px -5px oklch(35% 0.015 55 / 0.1), 0 8px 10px -6px oklch(35% 0.015 55 / 0.1);
+  /* Text colors */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
+
+  /* Borders */
+  --color-border: #27272a;
+  --color-border-strong: #3f3f46;
+  --color-border-subtle: #18181b;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+
+  /* Glow effects */
+  --glow-primary: 0 0 20px rgba(249, 115, 22, 0.4);
+
+  /* Steel palette - Mapped to Zinc for the Gym/Industrial look */
+  --color-steel-50: #fafafa;
+  --color-steel-100: #f4f4f5;
+  --color-steel-200: #e4e4e7;
+  --color-steel-300: #d4d4d8;
+  --color-steel-400: #a1a1aa;
+  --color-steel-500: #71717a;
+  --color-steel-600: #52525b;
+  --color-steel-700: #3f3f46;
+  --color-steel-800: #27272a;
+  --color-steel-900: #18181b;
+  --color-steel-950: #09090b;
+}
+
+/* Base styles */
+:root {
+  font-family: var(--font-sans);
+  background-color: var(--color-page-bg);
+  color: var(--color-text-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Utility classes */
 
 /* Hero number display - for large stat numbers */
 .text-hero {
+  font-family: var(--font-heading);
   font-size: 3.75rem;
   line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
-  color: var(--color-stone-900);
+  color: var(--color-text-primary);
 }
 
 /* Stat number display - for medium stat numbers */
 .text-stat {
+  font-family: var(--font-heading);
   font-size: 1.875rem;
   line-height: 1.2;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
-  color: var(--color-stone-900);
+  color: var(--color-text-primary);
 }
 
 /* Tabular numbers for data */
@@ -70,31 +104,31 @@
 /* Card surface utility */
 .surface-card {
   background-color: var(--color-card);
-  box-shadow: var(--shadow-warm);
-  border-radius: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem; /* Blocky look */
 }
 
 /* Elevated card surface */
 .surface-card-elevated {
-  background-color: var(--color-card);
-  box-shadow: var(--shadow-warm-lg);
-  border-radius: 0.75rem;
+  background-color: var(--color-card-elevated);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.25rem;
 }
 
 /* Accent left border utility */
 .accent-border-left {
-  border-left: 3px solid var(--color-accent);
+  border-left: 4px solid var(--color-primary);
   padding-left: 1rem;
 }
 
-/* Warm page background */
+/* Dark page background */
 .bg-page {
   background-color: var(--color-page-bg);
 }
 
 /* Trend indicators */
 .trend-up {
-  color: var(--color-success);
+  color: var(--color-success); /* Green for up/good in gym context? Usually weight up is good for strength, bad for bodyweight? Let's stick to Green = Good */
 }
 
 .trend-down {
@@ -104,4 +138,32 @@
 /* Chart gradient fill */
 .chart-gradient-primary {
   stop-color: var(--color-primary);
+}
+
+/* PR celebration animation */
+@keyframes pr-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
+    border-color: var(--color-border);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(249, 115, 22, 0.4);
+    border-color: var(--color-primary);
+  }
+}
+
+.pr-celebration {
+  animation: pr-pulse 0.6s ease-out 2;
+}
+
+/* Glow on hover */
+.glow-hover:hover {
+  box-shadow: 0 0 15px rgba(249, 115, 22, 0.25);
+  border-color: var(--color-primary);
+}
+
+/* Focus ring for dark mode */
+.focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-page-bg), 0 0 0 4px var(--color-primary);
 }

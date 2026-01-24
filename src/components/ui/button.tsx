@@ -10,20 +10,20 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  default: "bg-primary text-white hover:bg-primary/90 shadow-[var(--shadow-warm-sm)]",
-  outline: "border border-stone-300 bg-white text-stone-700 hover:bg-stone-50 hover:border-stone-400",
-  ghost: "text-stone-700 hover:bg-stone-100 hover:text-stone-900",
-  destructive: "bg-error text-white hover:bg-error/90 shadow-[var(--shadow-warm-sm)]",
-  secondary: "bg-stone-100 text-stone-900 hover:bg-stone-200",
+  default: "bg-primary text-white hover:bg-primary/90 glow-hover shadow-lg shadow-primary/20",
+  outline: "border-2 border-border bg-transparent text-white hover:bg-white/5 hover:border-white hover:text-white",
+  ghost: "text-steel-400 hover:bg-white/5 hover:text-white",
+  destructive: "bg-error text-white hover:bg-error/90 shadow-lg shadow-error/20",
+  secondary: "bg-steel-800 text-white hover:bg-steel-700 border border-steel-700",
   link: "text-primary underline-offset-4 hover:underline",
-  accent: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-[var(--shadow-warm-sm)]",
+  accent: "bg-accent text-white hover:bg-accent/90 glow-hover",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  default: "h-10 px-4 py-2",
-  sm: "h-8 px-3 text-sm",
-  lg: "h-12 px-6 text-lg",
-  icon: "h-10 w-10",
+  default: "h-11 px-6 py-2",
+  sm: "h-9 px-4 text-xs",
+  lg: "h-14 px-8 text-lg",
+  icon: "h-11 w-11",
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -31,20 +31,22 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     <button
       ref={ref}
       disabled={disabled}
-      className={cn(
-        "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2",
-        "disabled:pointer-events-none disabled:opacity-50",
-        "[&>svg]:pointer-events-none [&>svg]:shrink-0",
-        variantStyles[variant],
-        sizeStyles[size],
-        className,
-      )}
+      className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
   ),
 );
 Button.displayName = "Button";
+
+export const buttonVariants = ({ variant = "default", size = "default", className }: { variant?: ButtonVariant; size?: ButtonSize; className?: string }) => cn(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm font-heading font-bold uppercase tracking-wider transition-all duration-200",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-page-bg",
+  "disabled:pointer-events-none disabled:opacity-50",
+  "[&>svg]:pointer-events-none [&>svg]:shrink-0",
+  variantStyles[variant],
+  sizeStyles[size],
+  className,
+);
 
 export { Button };
 export type { ButtonVariant, ButtonSize, ButtonProps };

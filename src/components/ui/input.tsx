@@ -8,10 +8,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({ className, type = "tex
     ref={ref}
     type={type}
     className={cn(
-      "flex h-10 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900",
-      "placeholder:text-stone-400",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-accent",
-      "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-stone-50",
+      "flex h-11 w-full rounded-md border border-steel-800 bg-black/20 px-4 py-2 text-sm text-white font-medium",
+      "placeholder:text-steel-600",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent",
+      "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-steel-900",
+      "transition-all duration-200",
+      "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
       className,
     )}
     {...props}

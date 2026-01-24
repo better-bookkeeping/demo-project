@@ -12,7 +12,6 @@ import {
   type ReactNode,
 } from "react";
 
-// Context for dropdown state
 interface DropdownContextValue {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -29,7 +28,6 @@ function useDropdown() {
   return context;
 }
 
-// Root component
 interface DropdownMenuProps {
   children: ReactNode;
   open?: boolean;
@@ -56,7 +54,6 @@ function DropdownMenu({ children, open: controlledOpen, onOpenChange }: Dropdown
   return <DropdownContext.Provider value={{ open, setOpen, triggerRef }}>{children}</DropdownContext.Provider>;
 }
 
-// Trigger component
 interface DropdownMenuTriggerProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
 }
@@ -70,14 +67,13 @@ const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTriggerPro
       onClick?.(e);
     };
 
-    // If asChild, clone the child and add the necessary props
     if (asChild && children) {
       const child = children as React.ReactElement<any>;
       return (
         <span
           onClick={() => setOpen(!open)}
           ref={(node) => {
-            // @ts-ignore - we're just storing a reference
+            {/* @ts-ignore */}
             if (triggerRef) triggerRef.current = node;
           }}>
           {child}
@@ -105,7 +101,6 @@ const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTriggerPro
 );
 DropdownMenuTrigger.displayName = "DropdownMenuTrigger";
 
-// Content component
 type DropdownAlign = "start" | "center" | "end";
 
 interface DropdownMenuContentProps extends HTMLAttributes<HTMLDivElement> {
@@ -118,7 +113,6 @@ const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>
     const { open, setOpen, triggerRef } = useDropdown();
     const contentRef = useRef<HTMLDivElement>(null);
 
-    // Close on click outside
     useEffect(() => {
       if (!open) return;
 
@@ -162,13 +156,13 @@ const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>
         ref={(node) => {
           if (typeof ref === "function") ref(node);
           else if (ref) ref.current = node;
-          // @ts-ignore
+          {/* @ts-ignore */}
           contentRef.current = node;
         }}
         role="menu"
         aria-orientation="vertical"
         className={cn(
-          "absolute z-50 min-w-[8rem] overflow-hidden rounded-md border bg-white p-1 shadow-lg",
+          "absolute z-50 min-w-[8rem] overflow-hidden rounded-md border border-border bg-card-elevated p-1 shadow-lg",
           "animate-in fade-in-0 zoom-in-95",
           alignStyles[align],
           className,
@@ -182,7 +176,6 @@ const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>
 );
 DropdownMenuContent.displayName = "DropdownMenuContent";
 
-// Item component
 interface DropdownMenuItemProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   inset?: boolean;
 }
@@ -204,8 +197,8 @@ const DropdownMenuItem = forwardRef<HTMLButtonElement, DropdownMenuItemProps>(
         type="button"
         disabled={disabled}
         className={cn(
-          "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",
-          "transition-colors hover:bg-gray-100 focus:bg-gray-100",
+          "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none text-white",
+          "transition-colors hover:bg-steel-800 focus:bg-steel-800",
           "disabled:pointer-events-none disabled:opacity-50",
           inset && "pl-8",
           className,
@@ -219,27 +212,24 @@ const DropdownMenuItem = forwardRef<HTMLButtonElement, DropdownMenuItemProps>(
 );
 DropdownMenuItem.displayName = "DropdownMenuItem";
 
-// Label component
 const DropdownMenuLabel = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement> & { inset?: boolean }>(
   ({ className, inset, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("px-2 py-1.5 text-sm font-semibold text-gray-900", inset && "pl-8", className)}
+      className={cn("px-2 py-1.5 text-sm font-semibold text-white font-heading tracking-wide", inset && "pl-8", className)}
       {...props}
     />
   ),
 );
 DropdownMenuLabel.displayName = "DropdownMenuLabel";
 
-// Separator component
 const DropdownMenuSeparator = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("-mx-1 my-1 h-px bg-gray-200", className)} {...props} />
+    <div ref={ref} className={cn("-mx-1 my-1 h-px bg-border", className)} {...props} />
   ),
 );
 DropdownMenuSeparator.displayName = "DropdownMenuSeparator";
 
-// Group component
 const DropdownMenuGroup = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
   <div ref={ref} role="group" className={className} {...props} />
 ));

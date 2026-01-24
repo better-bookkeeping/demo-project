@@ -8,13 +8,13 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const variantStyles: Record<CardVariant, string> = {
-  default: "bg-card shadow-[var(--shadow-warm)]",
-  elevated: "bg-card shadow-[var(--shadow-warm-lg)]",
-  stat: "bg-card shadow-[var(--shadow-warm)] border-l-3 border-l-accent",
+  default: "bg-card border-none",
+  elevated: "bg-card-elevated border-none shadow-lg",
+  stat: "bg-card border-l-4 border-l-primary shadow-lg",
 };
 
 const Card = forwardRef<HTMLDivElement, CardProps>(({ className, variant = "default", ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-xl", variantStyles[variant], className)} {...props} />
+  <div ref={ref} className={cn("rounded-md", variantStyles[variant], className)} {...props} />
 ));
 Card.displayName = "Card";
 
@@ -24,7 +24,7 @@ const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(({
 CardHeader.displayName = "CardHeader";
 
 const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (
-  <h3 ref={ref} className={cn("text-lg font-semibold leading-none tracking-tight text-stone-900", className)} {...props} />
+  <h3 ref={ref} className={cn("text-xl font-heading font-bold uppercase leading-none tracking-wide text-white", className)} {...props} />
 ));
 CardTitle.displayName = "CardTitle";
 
