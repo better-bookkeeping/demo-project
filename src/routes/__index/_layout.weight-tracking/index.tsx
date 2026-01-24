@@ -95,7 +95,7 @@ function WeightTrackingPage() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const trend = calculateTrend(weightHistory);
-  const reversedHistory = weightHistory.slice().reverse();
+  const history = weightHistory;
 
   const stats = useMemo(() => {
     if (weightHistory.length === 0) return null;
@@ -140,8 +140,8 @@ function WeightTrackingPage() {
                  {trend && (
                    <div className={cn(
                      "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
-                     trend.direction === "up" ? "bg-error/10 text-error" :
-                     trend.direction === "down" ? "bg-success/10 text-success" : "bg-steel-800 text-steel-400"
+                     trend.direction === "up" ? "bg-success/10 text-success" :
+                     trend.direction === "down" ? "bg-error/10 text-error" : "bg-steel-800 text-steel-400"
                    )}>
                       {trend.direction === "up" ? <TrendingUp className="w-3 h-3" /> :
                        trend.direction === "down" ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
@@ -164,7 +164,7 @@ function WeightTrackingPage() {
                         placeholder="0.0"
                         value={weight}
                         onChange={(e) => setWeight(e.target.value)}
-                        className="bg-steel-900/50 border-steel-700 text-lg font-bold h-10 text-center focus:border-primary"
+                        className="bg-steel-900/50 border-steel-700 text-xl font-bold h-10 text-center focus:border-primary"
                         step="0.1"
                      />
                   </div>
@@ -184,7 +184,7 @@ function WeightTrackingPage() {
             <div className="grid grid-cols-3 gap-3">
                <div className="bg-card border border-steel-800 rounded-lg p-3 text-center">
                  <p className="text-[10px] font-bold text-steel-500 uppercase mb-1">Lowest</p>
-                 <p className="text-xl font-heading font-bold text-success tabular-nums">{stats.min}</p>
+                 <p className="text-xl font-heading font-bold text-white tabular-nums">{stats.min}</p>
                </div>
                <div className="bg-card border border-steel-800 rounded-lg p-3 text-center">
                  <p className="text-[10px] font-bold text-steel-500 uppercase mb-1">Average</p>
@@ -192,7 +192,7 @@ function WeightTrackingPage() {
                </div>
                <div className="bg-card border border-steel-800 rounded-lg p-3 text-center">
                  <p className="text-[10px] font-bold text-steel-500 uppercase mb-1">Highest</p>
-                 <p className="text-xl font-heading font-bold text-error tabular-nums">{stats.max}</p>
+                 <p className="text-xl font-heading font-bold text-success tabular-nums">{stats.max}</p>
                </div>
             </div>
           )}
@@ -214,8 +214,8 @@ function WeightTrackingPage() {
            <div className="space-y-3">
              <h3 className="text-sm font-bold text-steel-400 uppercase tracking-wider px-2">History</h3>
              <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-steel-700">
-               {reversedHistory.map((entry, index) => {
-                  const changeInfo = getChangeFromPrevious(index, reversedHistory);
+               {history.map((entry, index) => {
+                  const changeInfo = getChangeFromPrevious(index, history);
                   return (
                     <div key={entry.id} className="group flex items-center justify-between p-3 rounded-lg bg-card border border-transparent hover:border-steel-700 hover:bg-card-elevated transition-all">
                        <div className="flex items-center gap-4">
@@ -231,7 +231,7 @@ function WeightTrackingPage() {
                           {changeInfo && changeInfo.direction !== 'neutral' && (
                             <span className={cn(
                               "text-xs font-bold flex items-center gap-1",
-                              changeInfo.direction === 'up' ? "text-error" : "text-success"
+                              changeInfo.direction === 'up' ? "text-success" : "text-error"
                             )}>
                               {changeInfo.direction === 'up' ? "+" : "-"}{changeInfo.change.toFixed(1)}
                             </span>

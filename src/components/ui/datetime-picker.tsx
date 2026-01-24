@@ -712,7 +712,7 @@ const DateTimePicker = React.forwardRef<
             ref={ref as React.Ref<HTMLButtonElement>}
             variant="outline"
             className={cn(
-              "w-full justify-start text-left font-normal bg-steel-900/50 border-steel-700 h-10 hover:bg-steel-800 hover:text-white transition-colors overflow-hidden truncate normal-case",
+              "w-full justify-start text-left font-normal bg-steel-900/50 border border-steel-700 h-10 hover:bg-steel-800 hover:text-white transition-colors overflow-hidden px-2.5 normal-case",
               !value && "text-steel-500",
               className,
             )}
@@ -720,9 +720,9 @@ const DateTimePicker = React.forwardRef<
           >
             <CalendarIcon className="mr-2 h-4 w-4 text-primary flex-shrink-0" />
             {displayedDate ? (
-              <span className="text-white truncate">{displayedDate}</span>
+              <span className="text-white truncate text-base font-bold">{displayedDate}</span>
             ) : (
-              <span>{placeholder}</span>
+              <span className="text-base">{placeholder}</span>
             )}
           </Button>
         </PopoverTrigger>
