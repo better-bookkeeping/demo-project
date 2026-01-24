@@ -1,5 +1,107 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: oklch(37.8% 0.077 168.94);
+  /* Primary - Vibrant growth green */
+  --color-primary: oklch(45% 0.12 145);
+  --color-primary-foreground: oklch(98% 0.01 145);
+
+  /* Accent - Copper/amber for highlights */
+  --color-accent: oklch(65% 0.14 55);
+  --color-accent-foreground: oklch(25% 0.04 55);
+
+  /* Stone neutrals (warm-tinted) */
+  --color-stone-50: oklch(98% 0.005 80);
+  --color-stone-100: oklch(96% 0.008 80);
+  --color-stone-200: oklch(92% 0.012 80);
+  --color-stone-300: oklch(87% 0.015 75);
+  --color-stone-400: oklch(70% 0.018 70);
+  --color-stone-500: oklch(55% 0.02 65);
+  --color-stone-600: oklch(45% 0.018 60);
+  --color-stone-700: oklch(35% 0.015 55);
+  --color-stone-800: oklch(25% 0.012 50);
+  --color-stone-900: oklch(18% 0.01 45);
+
+  /* Page background */
+  --color-page-bg: oklch(96% 0.01 80);
+
+  /* Card surface */
+  --color-card: oklch(99% 0.003 80);
+
+  /* Semantic colors */
+  --color-success: oklch(50% 0.14 145);
+  --color-warning: oklch(70% 0.15 75);
+  --color-error: oklch(55% 0.2 25);
+
+  /* Warm-tinted shadows */
+  --shadow-warm-sm: 0 1px 2px 0 oklch(35% 0.015 55 / 0.05);
+  --shadow-warm: 0 1px 3px 0 oklch(35% 0.015 55 / 0.1), 0 1px 2px -1px oklch(35% 0.015 55 / 0.1);
+  --shadow-warm-md: 0 4px 6px -1px oklch(35% 0.015 55 / 0.1), 0 2px 4px -2px oklch(35% 0.015 55 / 0.1);
+  --shadow-warm-lg: 0 10px 15px -3px oklch(35% 0.015 55 / 0.1), 0 4px 6px -4px oklch(35% 0.015 55 / 0.1);
+  --shadow-warm-xl: 0 20px 25px -5px oklch(35% 0.015 55 / 0.1), 0 8px 10px -6px oklch(35% 0.015 55 / 0.1);
+}
+
+/* Utility classes */
+
+/* Hero number display - for large stat numbers */
+.text-hero {
+  font-size: 3.75rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-stone-900);
+}
+
+/* Stat number display - for medium stat numbers */
+.text-stat {
+  font-size: 1.875rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-stone-900);
+}
+
+/* Tabular numbers for data */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Card surface utility */
+.surface-card {
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-warm);
+  border-radius: 0.75rem;
+}
+
+/* Elevated card surface */
+.surface-card-elevated {
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-warm-lg);
+  border-radius: 0.75rem;
+}
+
+/* Accent left border utility */
+.accent-border-left {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 1rem;
+}
+
+/* Warm page background */
+.bg-page {
+  background-color: var(--color-page-bg);
+}
+
+/* Trend indicators */
+.trend-up {
+  color: var(--color-success);
+}
+
+.trend-down {
+  color: var(--color-error);
+}
+
+/* Chart gradient fill */
+.chart-gradient-primary {
+  stop-color: var(--color-primary);
 }
