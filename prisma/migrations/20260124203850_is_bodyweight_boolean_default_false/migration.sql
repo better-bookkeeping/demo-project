@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Movement" ADD COLUMN     "isBodyWeight" BOOLEAN NOT NULL DEFAULT false;
+
+-- AlterTable
+ALTER TABLE "Set" ALTER COLUMN "weight" SET DATA TYPE DOUBLE PRECISION;

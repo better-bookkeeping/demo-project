@@ -8,11 +8,11 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
+  id           String     @id @default(uuid())
+  email        String     @unique
   name         String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   passwordHash String
   weights      Weight[]
   workouts     Workout[]
@@ -30,11 +30,12 @@ model Weight {
 }
 
 model Movement {
-  id     String @id @default(uuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-  name   String
-  sets   Set[]
+  id           String  @id @default(uuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id])
+  name         String
+  isBodyWeight Boolean @default(false)
+  sets         Set[]
 
   @@index([userId])
 }
@@ -54,5 +55,5 @@ model Set {
   movementId String
   movement   Movement @relation(fields: [movementId], references: [id])
   reps       Int
-  weight     Int
+  weight     Float
 }
