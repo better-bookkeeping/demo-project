@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { deleteWorkoutsServerFn } from "@/lib/workouts.server";
-import { Trash2, History, Calendar, Edit2, X, Check, Dumbbell } from "lucide-react";
+import { Trash2, History, Calendar, Edit2, X, Check } from "lucide-react";
 import { workoutHistoryQueryOptions } from "./-queries/workout-history";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";

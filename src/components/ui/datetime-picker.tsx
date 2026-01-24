@@ -681,10 +681,11 @@ const DateTimePicker = React.forwardRef<
       showWeekNumber,
       showOutsideDays,
       weekStartsOn,
-      ...props
+      ..._props
     },
     ref,
   ) => {
+    void _props;
     const [isOpen, setIsOpen] = React.useState(false)
 
     const handleSelect = (date: Date | undefined) => {
