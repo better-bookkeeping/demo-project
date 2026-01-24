@@ -16,6 +16,7 @@ model User {
   passwordHash String
   weights      Weight[]
   workouts     Workout[]
+  movements    Movement[]
 }
 
 model Weight {
@@ -29,9 +30,13 @@ model Weight {
 }
 
 model Movement {
-  id   String @id @default(uuid())
-  name String
-  sets Set[]
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  name   String
+  sets   Set[]
+
+  @@index([userId])
 }
 
 model Workout {
