@@ -37,20 +37,20 @@ function RouteComponent() {
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
-    <div className="h-screen flex bg-page-bg">
-      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-stone-200 flex items-center px-4 z-40 overflow-hidden">
+    <div className="h-screen flex bg-page-bg font-sans">
+      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-card border-b border-border flex items-center px-4 z-40 overflow-hidden">
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="p-2 -ml-2 text-stone-600 hover:text-stone-900 flex-shrink-0"
+          className="p-2 -ml-2 text-steel-400 hover:text-white flex-shrink-0"
           aria-label="Open menu">
           <Menu className="w-6 h-6" />
         </button>
-        <img src="/wordmark.svg" alt="Logo" className="h-5 ml-3 max-w-[180px] object-contain" />
+        <img src="/wordmark.svg" alt="Logo" className="h-5 ml-3 max-w-[180px] object-contain invert" />
       </div>
 
       {mobileMenuOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          className="md:hidden fixed inset-0 bg-black/80 z-40 backdrop-blur-sm"
           onClick={closeMobileMenu}
           aria-hidden="true"
         />
@@ -59,50 +59,51 @@ function RouteComponent() {
       <nav
         className={`
           fixed md:static inset-y-0 left-0 z-50
-          w-64 bg-gradient-to-b from-stone-100 to-stone-50 p-4 flex flex-col overflow-hidden
+          w-72 bg-card border-r border-border p-4 flex flex-col overflow-hidden
           transform transition-transform duration-200 ease-out md:transform-none
           ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}>
-        <div className="flex items-center justify-between gap-2 mb-8">
-          <img src="/wordmark.svg" alt="Logo" className="h-7 max-w-[170px] flex-shrink min-w-0" />
+        <div className="flex items-center justify-between gap-2 mb-10 px-2">
+          <img src="/wordmark.svg" alt="Logo" className="h-8 max-w-[170px] flex-shrink min-w-0 invert" />
           <button
-            className="md:hidden p-1.5 text-stone-400 hover:text-stone-600 flex-shrink-0"
+            className="md:hidden p-1.5 text-steel-500 hover:text-white flex-shrink-0"
             onClick={closeMobileMenu}
             aria-label="Close menu">
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
-        <div className="flex flex-col gap-1 flex-1">
+        <div className="flex flex-col gap-2 flex-1">
           {navItems.map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
               to={to}
               onClick={closeMobileMenu}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-stone-600 hover:bg-white/60 hover:text-stone-900 transition-colors [&.active]:bg-white [&.active]:text-stone-900 [&.active]:shadow-[var(--shadow-warm-sm)] [&.active]:border-l-3 [&.active]:border-l-accent [&.active]:-ml-0.5 [&.active]:pl-[calc(0.75rem+2px)]">
-              <Icon className="w-4 h-4" />
+              className="group flex items-center gap-4 px-4 py-3 rounded-md text-base font-bold uppercase tracking-wide text-steel-400 hover:bg-white/5 hover:text-white transition-all
+              [&.active]:bg-white/5 [&.active]:text-primary [&.active]:accent-border-left [&.active]:pl-[calc(1rem-4px)]">
+              <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
               {label}
             </Link>
           ))}
         </div>
-        <div className="border-t border-stone-200 pt-4 mt-4 space-y-2">
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-semibold shadow-[var(--shadow-warm-sm)]">
+        <div className="border-t border-border pt-6 mt-4 space-y-4">
+          <div className="flex items-center gap-4 px-4 py-2 bg-white/5 rounded-lg border border-white/5">
+            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-white text-base font-bold shadow-lg shadow-orange-500/20">
               {initials}
             </div>
             <div className="truncate flex-1">
-              <p className="text-xs text-stone-400">Logged in as</p>
-              <p className="text-sm font-medium text-stone-700 truncate">{user.name || user.email}</p>
+              <p className="text-xs text-steel-400 uppercase tracking-wider font-bold">Athlete</p>
+              <p className="text-sm font-bold text-white truncate">{user.name || user.email}</p>
             </div>
           </div>
           <a href="/logout">
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-stone-600">
+            <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-steel-400 hover:text-error hover:bg-error/10 uppercase font-bold tracking-wide">
               <LogOut className="w-4 h-4" />
               Log out
             </Button>
           </a>
         </div>
       </nav>
-      <main className="flex-1 overflow-y-auto p-6 pt-20 md:pt-6 bg-page-bg">
+      <main className="flex-1 overflow-y-auto p-4 md:px-8 md:pb-8 pt-14 md:pt-0 bg-page-bg scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
         <Outlet />
       </main>
     </div>
