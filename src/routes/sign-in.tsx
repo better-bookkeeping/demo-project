@@ -52,20 +52,20 @@ function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-100 via-stone-50 to-stone-100 px-4">
+      <Card variant="elevated" className="w-full max-w-md">
         <CardHeader className="text-center space-y-2">
           <img src="/wordmark.svg" alt="Logo" className="h-8 mx-auto" />
-          <CardTitle className="text-2xl font-semibold text-gray-900">Sign in to your account</CardTitle>
-          <p className="text-sm text-gray-500">Enter your credentials to continue</p>
+          <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
+          <p className="text-sm text-stone-500">Enter your credentials to continue</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">{error}</div>
+              <div className="p-3 text-sm text-error bg-error/10 border border-error/20 rounded-lg">{error}</div>
             )}
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="text-sm font-medium text-stone-700">
                 Email
               </label>
               <Input
@@ -79,7 +79,7 @@ function SignInPage() {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="text-sm font-medium text-stone-700">
                 Password
               </label>
               <Input
@@ -96,7 +96,7 @@ function SignInPage() {
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-gray-500">
+          <p className="mt-4 text-center text-sm text-stone-500">
             Don't have an account?{" "}
             <Link to="/create-account" className="text-primary hover:underline font-medium">
               Create one
@@ -107,7 +107,7 @@ function SignInPage() {
               type="button"
               variant="ghost"
               size="sm"
-              className="w-full mt-4 text-xs text-slate-400"
+              className="w-full mt-4 text-xs text-stone-400"
               onClick={async () => {
                 const users = await getAllUsersServerFn();
                 console.log("All users:", users);
