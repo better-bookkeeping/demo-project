@@ -5,13 +5,14 @@ import { z } from "zod";
 
 export const createMovementServerFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ name: z.string().min(1) }))
+  .inputValidator(z.object({ name: z.string().min(1), isBodyWeight: z.boolean().default(false) }))
   .handler(async ({ data, context }) => {
     const prisma = await getServerSidePrismaClient();
     const movement = await prisma.movement.create({
       data: {
         name: data.name,
-        userId: context.user.id
+        userId: context.user.id,
+        isBodyWeight: data.isBodyWeight,
       },
     });
     return { success: true, movement };
@@ -28,25 +29,26 @@ export const getMovementsServerFn = createServerFn()
 
     if (movements.length === 0) {
       const defaults = [
-        "Bench Press",
-        "Squat",
-        "Deadlift",
-        "Overhead Press",
-        "Pull Up",
-        "Dumbbell Curl",
-        "Tricep Extension",
-        "Leg Press",
-        "Incline Bench Press",
-        "Lat Pulldown",
-        "Seated Row",
-        "Dumbbell Shoulder Press"
+        { name: "Bench Press", isBodyWeight: false },
+        { name: "Squat", isBodyWeight: false },
+        { name: "Deadlift", isBodyWeight: false },
+        { name: "Overhead Press", isBodyWeight: false },
+        { name: "Pull Up", isBodyWeight: true },
+        { name: "Push Up", isBodyWeight: true },
+        { name: "Dip", isBodyWeight: true },
+        { name: "Dumbbell Curl", isBodyWeight: false },
+        { name: "Tricep Extension", isBodyWeight: false },
+        { name: "Leg Press", isBodyWeight: false },
+        { name: "Lat Pulldown", isBodyWeight: false },
+        { name: "Seated Row", isBodyWeight: false },
       ];
 
       await prisma.movement.createMany({
-        data: defaults.map(name => ({
-          name,
-          userId: context.user.id
-        }))
+        data: defaults.map((movement) => ({
+          name: movement.name,
+          isBodyWeight: movement.isBodyWeight,
+          userId: context.user.id,
+        })),
       });
 
       movements = await prisma.movement.findMany({
@@ -68,13 +70,13 @@ export const deleteMovementServerFn = createServerFn({ method: "POST" })
     const movement = await prisma.movement.findFirst({
       where: {
         id: data.id,
-        userId: context.user.id
+        userId: context.user.id,
       },
       include: {
         _count: {
-          select: { sets: true }
-        }
-      }
+          select: { sets: true },
+        },
+      },
     });
 
     if (!movement) {
@@ -86,7 +88,7 @@ export const deleteMovementServerFn = createServerFn({ method: "POST" })
     }
 
     await prisma.movement.delete({
-      where: { id: data.id }
+      where: { id: data.id },
     });
 
     return { success: true };

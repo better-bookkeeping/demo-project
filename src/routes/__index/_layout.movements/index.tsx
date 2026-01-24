@@ -6,7 +6,8 @@ import { createMovementServerFn, deleteMovementServerFn } from "@/lib/movements.
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { movementsQueryOptions } from "./-queries/movements";
-import { Dumbbell, Plus, Search, Sparkles, X, AlertTriangle } from "lucide-react";
+import { Dumbbell, Plus, Search, X, AlertTriangle, User } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "react-toastify";
 
 export const Route = createFileRoute("/__index/_layout/movements/")({
@@ -20,15 +21,17 @@ function MovementsPage() {
   const queryClient = useQueryClient();
   const { data: movements } = useSuspenseQuery(movementsQueryOptions());
   const [name, setName] = useState("");
+  const [isBodyWeight, setIsBodyWeight] = useState(false);
   const [search, setSearch] = useState("");
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [movementToDelete, setMovementToDelete] = useState<string | null>(null);
 
   const createMovementMutation = useMutation({
-    mutationFn: (name: string) => createMovementServerFn({ data: { name } }),
+    mutationFn: (data: { name: string; isBodyWeight: boolean }) => createMovementServerFn({ data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: movementsQueryOptions().queryKey });
       setName("");
+      setIsBodyWeight(false);
       toast.success("Movement added to arsenal");
     },
   });
@@ -41,18 +44,16 @@ function MovementsPage() {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to delete movement");
-    }
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    createMovementMutation.mutate(name.trim());
+    createMovementMutation.mutate({ name: name.trim(), isBodyWeight });
   };
 
-  const filteredMovements = movements.filter((m) =>
-    m.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredMovements = movements.filter((m) => m.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto md:pt-8">
@@ -64,13 +65,13 @@ function MovementsPage() {
           <p className="text-steel-400 font-medium mt-1">Manage your exercises and equipment.</p>
         </div>
         <div className="relative w-full md:w-64">
-           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-steel-500" />
-           <Input
-             placeholder="Search movements..."
-             value={search}
-             onChange={(e) => setSearch(e.target.value)}
-             className="pl-9 bg-black/20 border-steel-800 focus:border-primary"
-           />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-steel-500" />
+          <Input
+            placeholder="Search movements..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 bg-black/20 border-steel-800 focus:border-primary"
+          />
         </div>
       </div>
 
@@ -92,11 +93,17 @@ function MovementsPage() {
                 className="h-12 text-lg bg-black/40 border-steel-700"
               />
             </div>
+            <div className="flex items-center gap-3 py-2">
+              <Switch id="is-bodyweight" checked={isBodyWeight} onCheckedChange={setIsBodyWeight} />
+              <label htmlFor="is-bodyweight" className="text-sm text-steel-400 cursor-pointer flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Body-weight movement
+              </label>
+            </div>
             <Button
               type="submit"
               disabled={!name.trim()}
-              className="h-12 w-full sm:w-auto px-8 font-bold uppercase tracking-wider"
-            >
+              className="h-12 w-full sm:w-auto px-8 font-bold uppercase tracking-wider">
               {createMovementMutation.isPending ? "Adding..." : "Add to Arsenal"}
             </Button>
           </form>
@@ -120,8 +127,7 @@ function MovementsPage() {
           {filteredMovements.map((movement) => (
             <div
               key={movement.id}
-              className="group relative bg-card border border-steel-800 hover:border-primary/50 transition-all duration-200 rounded-lg overflow-hidden hover:shadow-[0_0_20px_rgba(249,115,22,0.1)] hover:-translate-y-1"
-            >
+              className="group relative bg-card border border-steel-800 hover:border-primary/50 transition-all duration-200 rounded-lg overflow-hidden hover:shadow-[0_0_20px_rgba(249,115,22,0.1)] hover:-translate-y-1">
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                 <Button
                   variant="ghost"
@@ -132,8 +138,7 @@ function MovementsPage() {
                     setMovementToDelete(movement.id);
                     setShowDeleteAlert(true);
                   }}
-                  disabled={deleteMovementMutation.isPending}
-                >
+                  disabled={deleteMovementMutation.isPending}>
                   <X className="w-4 h-4" />
                 </Button>
               </div>
@@ -145,6 +150,12 @@ function MovementsPage() {
                   <h3 className="font-heading font-bold text-white text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">
                     {movement.name}
                   </h3>
+                  {movement.isBodyWeight && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-wider mt-1">
+                      <User className="w-3 h-3" />
+                      Body-weight
+                    </span>
+                  )}
                   <div className="h-0.5 w-8 bg-steel-800 mt-2 group-hover:w-full group-hover:bg-primary/30 transition-all duration-500" />
                 </div>
               </div>
@@ -174,8 +185,7 @@ function MovementsPage() {
                   setShowDeleteAlert(false);
                   setMovementToDelete(null);
                 }}
-                className="flex-1"
-              >
+                className="flex-1">
                 Cancel
               </Button>
               <Button
@@ -186,8 +196,7 @@ function MovementsPage() {
                     setMovementToDelete(null);
                   }
                 }}
-                className="flex-1 bg-error hover:bg-error/90 text-white border-none"
-              >
+                className="flex-1 bg-error hover:bg-error/90 text-white border-none">
                 Delete
               </Button>
             </div>
