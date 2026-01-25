@@ -87,6 +87,7 @@ function MovementsPage() {
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <Input
+                data-testid="movement-name-input"
                 placeholder="Movement name (e.g. Incline Bench Press)"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -101,6 +102,7 @@ function MovementsPage() {
               </label>
             </div>
             <Button
+              data-testid="add-movement-button"
               type="submit"
               disabled={!name.trim()}
               className="h-12 w-full sm:w-auto px-8 font-bold uppercase tracking-wider">
@@ -127,9 +129,11 @@ function MovementsPage() {
           {filteredMovements.map((movement) => (
             <div
               key={movement.id}
+              data-testid="movement-item"
               className="group relative bg-card border border-steel-800 hover:border-primary/50 transition-all duration-200 rounded-lg overflow-hidden hover:shadow-[0_0_20px_rgba(249,115,22,0.1)] hover:-translate-y-1">
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                 <Button
+                  data-testid="delete-movement-trigger"
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-steel-500 hover:text-error hover:bg-error/10"
@@ -189,6 +193,7 @@ function MovementsPage() {
                 Cancel
               </Button>
               <Button
+                data-testid="confirm-delete-movement-button"
                 onClick={() => {
                   if (movementToDelete) {
                     deleteMovementMutation.mutate(movementToDelete);
