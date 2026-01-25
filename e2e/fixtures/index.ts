@@ -1,1 +1,1 @@
-export { test, expect, TEST_USER, type AuthHelpers } from "./auth";
+export { test, expect, type AuthHelpers } from "./auth";

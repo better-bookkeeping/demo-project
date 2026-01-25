@@ -1,5 +1,8 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../prisma/generated/client/client";
+import fs from "fs";
+import path from "path";
+import { E2E_ENV_FILE } from "./config";
 
 async function globalTeardown() {
   const databaseUrl = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/demo_project";
@@ -40,7 +43,10 @@ async function globalTeardown() {
 
     const usersToDelete = await prisma.user.findMany({
       where: {
-        email: { startsWith: "new-user-" },
+        OR: [
+          { email: { startsWith: "new-user-" } },
+          { email: { startsWith: "e2e-test-" } },
+        ],
       },
       select: { id: true },
     });
@@ -74,29 +80,9 @@ async function globalTeardown() {
       });
     }
 
-    const testUserEmail = process.env.E2E_TEST_USER_EMAIL;
-    if (testUserEmail) {
-      const user = await prisma.user.findUnique({
-        where: { email: testUserEmail },
-        select: { id: true },
-      });
-
-      if (user) {
-        await prisma.set.deleteMany({
-          where: {
-            OR: [
-              { workout: { userId: user.id } },
-              { movement: { userId: user.id } },
-            ],
-          },
-        });
-
-        await prisma.weight.deleteMany({ where: { userId: user.id } });
-        await prisma.workout.deleteMany({ where: { userId: user.id } });
-        await prisma.movement.deleteMany({ where: { userId: user.id } });
-
-        await prisma.user.delete({ where: { id: user.id } });
-      }
+    const envFilePath = path.join(process.cwd(), "e2e", E2E_ENV_FILE);
+    if (fs.existsSync(envFilePath)) {
+      fs.unlinkSync(envFilePath);
     }
   } catch (error) {
     console.error("[e2e-teardown] Error:", error);

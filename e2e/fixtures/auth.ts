@@ -1,16 +1,50 @@
 import { test as base, expect, type Page, type Locator } from "@playwright/test";
+import fs from "fs";
+import path from "path";
+import { E2E_ENV_FILE } from "../config";
 
 export const WAIT = { SHORT: 100, MEDIUM: 300, LONG: 500, PR: 700 } as const;
 
-export const TEST_USER = {
-  email: process.env.E2E_TEST_USER_EMAIL || "e2e-test@example.com",
-  password: process.env.E2E_TEST_USER_PASSWORD || "testpass123",
-  name: process.env.E2E_TEST_USER_NAME || "E2E Test User",
-} as const;
+interface WorkerEnvData {
+  timestamp: number;
+  password: string;
+  workers: Array<{
+    index: number;
+    email: string;
+    name: string;
+  }>;
+}
+
+function getWorkerEnv(): WorkerEnvData {
+  const envFilePath = path.join(process.cwd(), "e2e", E2E_ENV_FILE);
+
+  if (!fs.existsSync(envFilePath)) {
+    throw new Error(
+      `E2E environment file not found at ${envFilePath}. ` +
+        "Ensure global-setup.ts ran successfully before tests."
+    );
+  }
+
+  const data = fs.readFileSync(envFilePath, "utf-8");
+  return JSON.parse(data);
+}
+
+function getTestUserForWorker(workerIndex: number): { email: string; password: string; name: string } {
+  const envData = getWorkerEnv();
+  const workerCount = envData.workers.length;
+  const actualIndex = workerIndex % workerCount;
+  const worker = envData.workers[actualIndex];
+
+  return {
+    email: worker.email,
+    password: envData.password,
+    name: worker.name,
+  };
+}
 
 export async function waitForHydration(page: Page): Promise<void> {
   await page.waitForLoadState("networkidle");
-  await page.waitForTimeout(WAIT.SHORT * 2);
+  await page.waitForTimeout(WAIT.SHORT);
 }
 
 export async function fillWithRetry(input: Locator, value: string, maxRetries = 3): Promise<void> {
@@ -23,7 +57,7 @@ export async function fillWithRetry(input: Locator, value: string, maxRetries = 
       return;
     }
 
-    await input.page().waitForTimeout(150);
+    await input.page().waitForTimeout(100);
   }
 
   await input.fill(value);
@@ -36,9 +70,10 @@ export interface AuthHelpers {
   expectAuthenticated: () => Promise<void>;
   expectUnauthenticated: () => Promise<void>;
   ensureTestUser: () => Promise<void>;
+  testUser: { email: string; password: string; name: string };
 }
 
-async function ensureTestUser(page: Page): Promise<void> {
+async function ensureTestUser(page: Page, testUser: { email: string; name: string; password: string }): Promise<void> {
   await page.goto("/create-account");
 
   const nameInput = page.locator("#name");
@@ -50,9 +85,9 @@ async function ensureTestUser(page: Page): Promise<void> {
   await submitButton.waitFor({ state: "visible" });
   await waitForHydration(page);
 
-  await fillWithRetry(nameInput, TEST_USER.name);
-  await fillWithRetry(emailInput, TEST_USER.email);
-  await fillWithRetry(passwordInput, TEST_USER.password);
+  await fillWithRetry(nameInput, testUser.name);
+  await fillWithRetry(emailInput, testUser.email);
+  await fillWithRetry(passwordInput, testUser.password);
   await submitButton.click();
 
   await Promise.race([
@@ -95,10 +130,8 @@ async function signIn(page: Page, email: string, password: string): Promise<void
 
   await submitButton.click();
 
-  // Wait for URL change (success) first
   await page.waitForURL((url) => !url.pathname.includes("sign-in"), { timeout: 10000 });
 
-  // Then check if an error appeared (race condition check)
   const errorLocator = page.getByText(/invalid email or password/i);
   const errorVisible = await errorLocator.isVisible().catch(() => false);
   if (errorVisible) {
@@ -142,14 +175,18 @@ async function expectUnauthenticated(page: Page): Promise<void> {
 }
 
 export const test = base.extend<{ auth: AuthHelpers }>({
-  auth: async ({ page }, use) => {
+  auth: async ({ page }, use, testInfo) => {
+    const workerIndex = testInfo.parallelIndex;
+    const testUser = getTestUserForWorker(workerIndex);
+
     const helpers: AuthHelpers = {
-      signIn: (email = TEST_USER.email, password = TEST_USER.password) => signIn(page, email, password),
+      signIn: (email = testUser.email, password = testUser.password) => signIn(page, email, password),
       signOut: () => signOut(page),
       createAccount: (email: string, name: string, password: string) => createAccount(page, email, name, password),
       expectAuthenticated: () => expectAuthenticated(page),
       expectUnauthenticated: () => expectUnauthenticated(page),
-      ensureTestUser: () => ensureTestUser(page),
+      ensureTestUser: () => ensureTestUser(page, testUser),
+      testUser,
     };
 
     await use(helpers);
