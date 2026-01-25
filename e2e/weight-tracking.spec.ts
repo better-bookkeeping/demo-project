@@ -15,8 +15,6 @@ async function logWeight(page: Page, weight: string): Promise<void> {
 }
 
 test.describe("Weight Tracking", () => {
-  test.describe.configure({ mode: "serial" });
-
   test.beforeEach(async ({ auth }) => {
     await auth.signIn();
   });
