@@ -1,4 +1,4 @@
-import { test, expect, TEST_USER, fillWithRetry, WAIT, waitForHydration } from "./fixtures/auth";
+import { test, expect, fillWithRetry, WAIT, waitForHydration } from "./fixtures/auth";
 
 test.describe("Authentication", () => {
   test.afterEach(async ({ page }) => {
@@ -67,8 +67,8 @@ test.describe("Authentication", () => {
     test("should show loading state while signing in", async ({ page, auth }) => {
       await auth.ensureTestUser();
       await page.goto("/sign-in");
-      await page.locator("#email").fill(TEST_USER.email);
-      await page.locator("#password").fill(TEST_USER.password);
+      await page.locator("#email").fill(auth.testUser.email);
+      await page.locator("#password").fill(auth.testUser.password);
 
       const submitButton = page.getByRole("button", { name: /^sign in$/i });
       await submitButton.click();
@@ -115,8 +115,6 @@ test.describe("Authentication", () => {
     });
 
     test("should show error when email already exists", async ({ page, auth }) => {
-      await auth.ensureTestUser();
-
       await page.goto("/create-account");
 
       const nameInput = page.locator("#name");
@@ -128,7 +126,7 @@ test.describe("Authentication", () => {
       await page.waitForTimeout(WAIT.SHORT);
 
       await fillWithRetry(nameInput, "Test User");
-      await fillWithRetry(emailInput, TEST_USER.email);
+      await fillWithRetry(emailInput, auth.testUser.email);
       await fillWithRetry(passwordInput, "newpassword123");
       await submitButton.click();
 
