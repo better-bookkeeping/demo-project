@@ -64,7 +64,7 @@ function ProgressionPage() {
         <div className="space-y-1">
           <label className="text-[10px] font-bold text-steel-500 uppercase ml-1">Exercise</label>
           <Select value={selectedMovementId} onValueChange={setSelectedMovementId}>
-            <SelectTrigger className="bg-steel-900/50 border-steel-700 h-12">
+            <SelectTrigger data-testid="exercise-select" className="bg-steel-900/50 border-steel-700 h-12">
               <SelectValue placeholder="Select an exercise..." />
             </SelectTrigger>
             <SelectContent>
@@ -80,7 +80,7 @@ function ProgressionPage() {
         <div className="space-y-1">
           <label className="text-[10px] font-bold text-steel-500 uppercase ml-1">Metric</label>
           <Select value={metricType} onValueChange={(v) => setMetricType(v as MetricType)}>
-            <SelectTrigger className="bg-steel-900/50 border-steel-700 h-12">
+            <SelectTrigger data-testid="metric-select" className="bg-steel-900/50 border-steel-700 h-12">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -94,7 +94,7 @@ function ProgressionPage() {
         <div className="space-y-1">
           <label className="text-[10px] font-bold text-steel-500 uppercase ml-1">Period</label>
           <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
-            <SelectTrigger className="bg-steel-900/50 border-steel-700 h-12">
+            <SelectTrigger data-testid="period-select" className="bg-steel-900/50 border-steel-700 h-12">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -142,9 +142,9 @@ function ProgressionPage() {
       )}
 
       {/* Chart Card */}
-      <Card className="bg-card border-steel-800">
+      <Card data-testid="progression-chart" className="bg-card border-steel-800">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm text-steel-400">
+          <CardTitle data-testid="chart-title" className="text-sm text-steel-400">
             {selectedMovement ? selectedMovement.name : "Select an exercise"}
           </CardTitle>
         </CardHeader>
