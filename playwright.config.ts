@@ -1,11 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_WORKER_COUNT } from "./e2e/config";
 
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: E2E_WORKER_COUNT,
   reporter: "html",
   use: {
     baseURL: "http://localhost:3000",
@@ -33,25 +34,21 @@ export default defineConfig({
       name: "workouts",
       testMatch: "**/workouts.spec.ts",
       use: { ...devices["Desktop Chrome"] },
-      dependencies: ["auth", "movements"],
     },
     {
       name: "sets",
       testMatch: "**/sets.spec.ts",
       use: { ...devices["Desktop Chrome"] },
-      dependencies: ["workouts"],
     },
     {
       name: "weight-tracking",
       testMatch: "**/weight-tracking.spec.ts",
       use: { ...devices["Desktop Chrome"] },
-      dependencies: ["sets"],
     },
     {
       name: "progression",
       testMatch: "**/progression.spec.ts",
       use: { ...devices["Desktop Chrome"] },
-      dependencies: ["sets"],
     },
   ],
 });
