@@ -183,7 +183,7 @@ function CurrentWorkoutPage() {
 
   if (!workout) {
     return (
-      <div className="h-full flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-500">
+      <div data-testid="no-workout-state" className="h-full flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-500">
         <div className="relative">
           <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
           <div className="relative w-32 h-32 rounded-full border-4 border-steel-800 bg-black/50 flex items-center justify-center shadow-2xl">
@@ -192,13 +192,14 @@ function CurrentWorkoutPage() {
         </div>
 
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-heading font-black text-white uppercase tracking-wider italic">
+          <h1 data-testid="ready-to-lift-heading" className="text-4xl font-heading font-black text-white uppercase tracking-wider italic">
             Ready to Lift?
           </h1>
           <p className="text-steel-400 font-medium">Focus. Intensity. Execution.</p>
         </div>
 
         <Button
+          data-testid="start-workout-button"
           onClick={() => createWorkoutMutation.mutate()}
           size="lg"
           className="h-16 px-12 text-xl skew-x-[-10deg] shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] transition-all">
@@ -217,7 +218,7 @@ function CurrentWorkoutPage() {
   const uniqueMovements = groupedSets.size;
 
   return (
-    <div className="space-y-6 relative max-w-4xl mx-auto pb-20 md:pt-8">
+    <div data-testid="active-workout-state" className="space-y-6 relative max-w-4xl mx-auto pb-20 md:pt-8">
       {showPRBanner && (
         <div className="fixed top-24 right-4 z-50 animate-in slide-in-from-right duration-300">
           <div className="bg-gradient-to-l from-primary to-orange-600 pl-6 pr-8 py-4 rounded-l-xl shadow-[0_0_30px_rgba(249,115,22,0.4)] flex items-center gap-4 text-white border-y border-l border-white/20">
@@ -235,15 +236,16 @@ function CurrentWorkoutPage() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-widest mb-1">
+            <div data-testid="live-session-indicator" className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-widest mb-1">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               Live Session
             </div>
-            <h1 className="text-3xl font-heading font-black text-white italic tracking-wide uppercase">
+            <h1 data-testid="current-workout-heading" className="text-3xl font-heading font-black text-white italic tracking-wide uppercase">
               Current Workout
             </h1>
           </div>
           <Button
+            data-testid="finish-workout-button"
             variant="outline"
             onClick={handleFinish}
             className="h-12 w-full sm:w-auto border-primary/50 text-primary hover:bg-primary hover:text-white transition-all shadow-[0_0_15px_rgba(249,115,22,0.1)]">
@@ -252,28 +254,28 @@ function CurrentWorkoutPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
-          <div className="bg-black/40 border border-steel-800 rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center relative overflow-hidden group">
+        <div data-testid="workout-stats" className="grid grid-cols-3 gap-2 sm:gap-4">
+          <div data-testid="total-sets-stat" className="bg-black/40 border border-steel-800 rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center relative overflow-hidden group">
             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
             <Activity className="w-5 h-5 text-steel-500 mb-2 group-hover:text-primary transition-colors" />
-            <p className="text-2xl sm:text-4xl font-heading font-bold text-white tabular-nums">{totalSets}</p>
+            <p data-testid="total-sets-value" className="text-2xl sm:text-4xl font-heading font-bold text-white tabular-nums">{totalSets}</p>
             <p className="text-[10px] sm:text-xs font-bold text-steel-500 uppercase tracking-wider">Total Sets</p>
           </div>
 
-          <div className="bg-black/40 border border-steel-800 rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center relative overflow-hidden group">
+          <div data-testid="total-volume-stat" className="bg-black/40 border border-steel-800 rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center relative overflow-hidden group">
             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
             <Weight className="w-5 h-5 text-steel-500 mb-2 group-hover:text-primary transition-colors" />
-            <p className="text-2xl sm:text-4xl font-heading font-bold text-white tabular-nums">
+            <p data-testid="total-volume-value" className="text-2xl sm:text-4xl font-heading font-bold text-white tabular-nums">
               {(totalVolume / 1000).toFixed(1)}
               <span className="text-base sm:text-lg text-steel-600">k</span>
             </p>
             <p className="text-[10px] sm:text-xs font-bold text-steel-500 uppercase tracking-wider">Volume (lbs)</p>
           </div>
 
-          <div className="bg-black/40 border border-steel-800 rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center relative overflow-hidden group">
+          <div data-testid="movements-count-stat" className="bg-black/40 border border-steel-800 rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center relative overflow-hidden group">
             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
             <Zap className="w-5 h-5 text-steel-500 mb-2 group-hover:text-primary transition-colors" />
-            <p className="text-2xl sm:text-4xl font-heading font-bold text-white tabular-nums">{uniqueMovements}</p>
+            <p data-testid="movements-count-value" className="text-2xl sm:text-4xl font-heading font-bold text-white tabular-nums">{uniqueMovements}</p>
             <p className="text-[10px] sm:text-xs font-bold text-steel-500 uppercase tracking-wider">Movements</p>
           </div>
         </div>
@@ -292,12 +294,12 @@ function CurrentWorkoutPage() {
             <div className="space-y-2">
               <label className="text-xs font-bold text-steel-400 uppercase tracking-wider ml-1">Movement</label>
               <Select value={selectedMovement} onValueChange={handleMovementChange}>
-                <SelectTrigger>
+                <SelectTrigger data-testid="movement-select">
                   <SelectValue placeholder="Select movement..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent data-testid="movement-select-content">
                   {movements.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
+                    <SelectItem key={m.id} value={m.id} data-testid={`movement-option-${m.id}`}>
                       <span className="flex items-center gap-2">
                         {m.name}
 
@@ -314,6 +316,7 @@ function CurrentWorkoutPage() {
                 <label className="text-xs font-bold text-steel-400 uppercase tracking-wider ml-1">Weight (lbs)</label>
                 <div className="relative">
                   <Input
+                    data-testid="weight-input"
                     type="number"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
@@ -328,6 +331,7 @@ function CurrentWorkoutPage() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-steel-400 uppercase tracking-wider ml-1">Reps</label>
                 <Input
+                  data-testid="reps-input"
                   type="number"
                   value={reps}
                   onChange={(e) => setReps(e.target.value)}
@@ -339,6 +343,7 @@ function CurrentWorkoutPage() {
             </div>
 
             <Button
+              data-testid="log-set-button"
               type="submit"
               disabled={!selectedMovement || !reps || !weight}
               className="w-full h-12 text-lg shadow-lg shadow-primary/10">
@@ -380,6 +385,7 @@ function CurrentWorkoutPage() {
                     return (
                       <div
                         key={set.id}
+                        data-testid="set-item"
                         className={cn(
                           "relative overflow-hidden group transition-all duration-300",
                           "bg-card border-l-4 border-y border-r border-y-steel-800 border-r-steel-800",
@@ -388,19 +394,19 @@ function CurrentWorkoutPage() {
                           "hover:translate-x-1",
                         )}>
                         <div className="flex items-center p-3 sm:p-4">
-                          <div className="w-8 h-8 flex items-center justify-center bg-steel-900 rounded font-mono text-sm text-steel-500 mr-4 font-bold border border-steel-800">
+                          <div data-testid="set-index" className="w-8 h-8 flex items-center justify-center bg-steel-900 rounded font-mono text-sm text-steel-500 mr-4 font-bold border border-steel-800">
                             {index + 1}
                           </div>
 
                           <div className="flex-1 flex items-baseline gap-1">
-                            <span className="text-2xl font-heading font-bold text-white tabular-nums">
+                            <span data-testid="set-weight" className="text-2xl font-heading font-bold text-white tabular-nums">
                               {set.weight}
                             </span>
                             <span className="text-xs font-bold text-steel-500 uppercase mr-4">lbs</span>
 
                             <span className="text-steel-600 mx-2 text-lg">×</span>
 
-                            <span className="text-2xl font-heading font-bold text-white tabular-nums">{set.reps}</span>
+                            <span data-testid="set-reps" className="text-2xl font-heading font-bold text-white tabular-nums">{set.reps}</span>
                             <span className="text-xs font-bold text-steel-500 uppercase">reps</span>
                           </div>
 
@@ -412,6 +418,7 @@ function CurrentWorkoutPage() {
                           )}
 
                           <Button
+                            data-testid="delete-set-button"
                             variant="ghost"
                             size="icon"
                             onClick={() => deleteSetMutation.mutate(set.id)}
@@ -431,24 +438,24 @@ function CurrentWorkoutPage() {
       </div>
 
       {showFinishAlert && (
-        <div className="fixed inset-0 bg-black/80 z-50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div data-testid="empty-workout-dialog" className="fixed inset-0 bg-black/80 z-50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-card border border-steel-700 p-6 rounded-lg max-w-sm w-full shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 text-amber-500">
               <div className="bg-amber-500/10 p-2 rounded-full">
                 <AlertTriangle className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-heading font-bold text-white">Empty Workout</h3>
+              <h3 data-testid="empty-workout-heading" className="text-xl font-heading font-bold text-white">Empty Workout</h3>
             </div>
 
-            <p className="text-steel-400">
+            <p data-testid="empty-workout-message" className="text-steel-400">
               You haven't logged any sets. This empty session will be discarded and not saved to history.
             </p>
 
             <div className="flex gap-3 pt-2">
-              <Button variant="ghost" onClick={() => setShowFinishAlert(false)} className="flex-1">
+              <Button data-testid="cancel-finish-button" variant="ghost" onClick={() => setShowFinishAlert(false)} className="flex-1">
                 Cancel
               </Button>
-              <Button onClick={confirmFinish} className="flex-1 bg-amber-600 hover:bg-amber-700 text-white border-none">
+              <Button data-testid="finish-anyway-button" onClick={confirmFinish} className="flex-1 bg-amber-600 hover:bg-amber-700 text-white border-none">
                 Finish Anyway
               </Button>
             </div>

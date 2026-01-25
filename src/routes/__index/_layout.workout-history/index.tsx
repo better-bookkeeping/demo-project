@@ -48,15 +48,16 @@ function WorkoutHistoryPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
+    <div data-testid="workout-history-page" className="space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between sticky top-0 z-20 bg-page-bg/80 backdrop-blur-md py-4 -my-4 px-2">
-        <h1 className="text-3xl font-heading font-black text-white tracking-wide uppercase italic">
+        <h1 data-testid="logbook-heading" className="text-3xl font-heading font-black text-white tracking-wide uppercase italic">
           Logbook
         </h1>
         <div className="flex items-center gap-2">
           {isEditMode ? (
             <>
               <Button
+                data-testid="cancel-edit-button"
                 size="sm"
                 variant="ghost"
                 onClick={() => {
@@ -68,6 +69,7 @@ function WorkoutHistoryPage() {
                 <X className="w-5 h-5" />
               </Button>
               <Button
+                data-testid="delete-selected-button"
                 size="sm"
                 variant="destructive"
                 onClick={handleDeleteSelected}
@@ -80,6 +82,7 @@ function WorkoutHistoryPage() {
             </>
           ) : (
             <Button
+              data-testid="manage-button"
               size="sm"
               variant="outline"
               onClick={() => setIsEditMode(true)}
@@ -94,11 +97,11 @@ function WorkoutHistoryPage() {
       </div>
 
       {workouts.length === 0 ? (
-        <div className="py-20 text-center flex flex-col items-center justify-center opacity-50">
+        <div data-testid="empty-history-state" className="py-20 text-center flex flex-col items-center justify-center opacity-50">
           <div className="w-20 h-20 rounded-full bg-steel-800/50 flex items-center justify-center mb-6 border-2 border-dashed border-steel-700">
             <History className="w-10 h-10 text-steel-500" />
           </div>
-          <p className="text-xl font-heading font-bold text-steel-400 uppercase tracking-wide">
+          <p data-testid="no-history-message" className="text-xl font-heading font-bold text-steel-400 uppercase tracking-wide">
             No history recorded
           </p>
           <p className="text-sm text-steel-500 mt-2">
@@ -106,7 +109,7 @@ function WorkoutHistoryPage() {
           </p>
         </div>
       ) : (
-        <div className="relative border-l-2 border-steel-800 ml-4 md:ml-6 space-y-8 py-4">
+        <div data-testid="workout-history-list" className="relative border-l-2 border-steel-800 ml-4 md:ml-6 space-y-8 py-4">
           {workouts.map((workout) => {
             const date = new Date(workout.completedAt || new Date());
             const isSelected = selectedWorkouts.has(workout.id);
@@ -120,6 +123,8 @@ function WorkoutHistoryPage() {
             return (
               <div
                 key={workout.id}
+                data-testid="workout-card"
+                data-workout-id={workout.id}
                 className={cn(
                   "relative pl-6 md:pl-8 transition-all duration-300",
                   isEditMode && "cursor-pointer"
