@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
-import { Dumbbell, History, BicepsFlexed, LogOut, TrendingUp, Menu, X } from "lucide-react";
+import { Dumbbell, History, BicepsFlexed, LogOut, TrendingUp, Menu, X, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/__index/_layout")({
@@ -16,6 +16,7 @@ const navItems = [
   { to: "/workout-history", label: "Workout History", icon: History },
   { to: "/movements", label: "Movements", icon: BicepsFlexed },
   { to: "/weight-tracking", label: "Weight Tracking", icon: TrendingUp },
+  { to: "/progression", label: "Progression", icon: Activity },
 ] as const;
 
 function getInitials(name: string | null | undefined, email: string): string {
@@ -96,7 +97,10 @@ function RouteComponent() {
             </div>
           </div>
           <a href="/logout">
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-steel-400 hover:text-error hover:bg-error/10 uppercase font-bold tracking-wide">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-3 text-steel-400 hover:text-error hover:bg-error/10 uppercase font-bold tracking-wide">
               <LogOut className="w-4 h-4" />
               Log out
             </Button>
