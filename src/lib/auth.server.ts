@@ -135,6 +135,35 @@ export const logoutServerFn = createServerFn({ method: "POST" }).handler(async (
 });
 
 /**
+ * Creates a test account for E2E testing
+ * This is a simplified version that returns the user without setting session cookie
+ */
+export const createTestAccountServerFn = createServerFn({ method: "POST" })
+  .inputValidator(z.object({ email: z.string().email(), name: z.string().min(1), password: z.string().min(6) }))
+  .handler(async ({ data }: { data: { email: string; name: string; password: string } }) => {
+    const { email, name, password } = data;
+
+    const prisma = await getServerSidePrismaClient();
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return { success: false as const, error: "An account with this email already exists" };
+    }
+
+    const passwordHash = await argon2.hash(password);
+
+    const user = await prisma.user.create({
+      data: { email, name, passwordHash },
+      select: { id: true, email: true, name: true },
+    });
+
+    return { success: true as const, user };
+  });
+
+/**
  * Authentication middleware that ensures user is logged in
  * @throws Redirects to sign-in page if not authenticated
  */
