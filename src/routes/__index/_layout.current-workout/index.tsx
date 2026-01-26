@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   createWorkoutServerFn,
   completeWorkoutServerFn,
@@ -218,7 +218,7 @@ function CurrentWorkoutPage() {
   const uniqueMovements = groupedSets.size;
 
   return (
-    <div data-testid="active-workout-state" className="space-y-6 relative max-w-4xl mx-auto pb-20 md:pt-8">
+    <div data-testid="active-workout-state" className="space-y-6 relative max-w-4xl mx-auto pb-20 pt-6 md:pt-8">
       {showPRBanner && (
         <div className="fixed top-24 right-4 z-50 animate-in slide-in-from-right duration-300">
           <div className="bg-gradient-to-l from-primary to-orange-600 pl-6 pr-8 py-4 rounded-l-xl shadow-[0_0_30px_rgba(249,115,22,0.4)] flex items-center gap-4 text-white border-y border-l border-white/20">
@@ -256,26 +256,26 @@ function CurrentWorkoutPage() {
 
         <div data-testid="workout-stats" className="grid grid-cols-3 gap-2 sm:gap-4">
           <div data-testid="total-sets-stat" className="bg-black/40 border border-steel-800 rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center relative overflow-hidden group">
-            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <Activity className="w-5 h-5 text-steel-500 mb-2 group-hover:text-primary transition-colors" />
-            <p data-testid="total-sets-value" className="text-2xl sm:text-4xl font-heading font-bold text-white tabular-nums">{totalSets}</p>
+            <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Activity className="w-5 h-5 text-success mb-2 group-hover:text-success/80 transition-colors" />
+            <p data-testid="total-sets-value" className="text-2xl sm:text-4xl font-heading font-bold text-success tabular-nums">{totalSets}</p>
             <p className="text-[10px] sm:text-xs font-bold text-steel-500 uppercase tracking-wider">Total Sets</p>
           </div>
 
           <div data-testid="total-volume-stat" className="bg-black/40 border border-steel-800 rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center relative overflow-hidden group">
-            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <Weight className="w-5 h-5 text-steel-500 mb-2 group-hover:text-primary transition-colors" />
-            <p data-testid="total-volume-value" className="text-2xl sm:text-4xl font-heading font-bold text-white tabular-nums">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Weight className="w-5 h-5 text-primary mb-2 group-hover:text-primary/80 transition-colors" />
+            <p data-testid="total-volume-value" className="text-2xl sm:text-4xl font-heading font-bold text-primary tabular-nums">
               {(totalVolume / 1000).toFixed(1)}
-              <span className="text-base sm:text-lg text-steel-600">k</span>
+              <span className="text-base sm:text-lg text-primary/60">k</span>
             </p>
             <p className="text-[10px] sm:text-xs font-bold text-steel-500 uppercase tracking-wider">Volume (lbs)</p>
           </div>
 
           <div data-testid="movements-count-stat" className="bg-black/40 border border-steel-800 rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center relative overflow-hidden group">
-            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <Zap className="w-5 h-5 text-steel-500 mb-2 group-hover:text-primary transition-colors" />
-            <p data-testid="movements-count-value" className="text-2xl sm:text-4xl font-heading font-bold text-white tabular-nums">{uniqueMovements}</p>
+            <div className="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Zap className="w-5 h-5 text-warning mb-2 group-hover:text-warning/80 transition-colors" />
+            <p data-testid="movements-count-value" className="text-2xl sm:text-4xl font-heading font-bold text-warning tabular-nums">{uniqueMovements}</p>
             <p className="text-[10px] sm:text-xs font-bold text-steel-500 uppercase tracking-wider">Movements</p>
           </div>
         </div>
@@ -293,22 +293,13 @@ function CurrentWorkoutPage() {
           <form onSubmit={handleAddSet} className="space-y-6">
             <div className="space-y-2">
               <label className="text-xs font-bold text-steel-400 uppercase tracking-wider ml-1">Movement</label>
-              <Select value={selectedMovement} onValueChange={handleMovementChange}>
-                <SelectTrigger data-testid="movement-select">
-                  <SelectValue placeholder="Select movement..." />
-                </SelectTrigger>
-                <SelectContent data-testid="movement-select-content">
-                  {movements.map((m) => (
-                    <SelectItem key={m.id} value={m.id} data-testid={`movement-option-${m.id}`}>
-                      <span className="flex items-center gap-2">
-                        {m.name}
-
-                        {m.isBodyWeight && <span className="text-[10px] text-primary">(BW)</span>}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={selectedMovement}
+                onChange={handleMovementChange}
+                options={movements}
+                placeholder="Select movement..."
+                className="h-14 text-2xl font-bold bg-black/30"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

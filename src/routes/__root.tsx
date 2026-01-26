@@ -1,4 +1,4 @@
-import { HeadContent, Scripts, createRootRouteWithContext, useRouter } from "@tanstack/react-router";
+import { HeadContent, Scripts, createRootRouteWithContext, useRouter, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import styles from "../styles.css?url";
 import { type QueryClient } from "@tanstack/react-query";
@@ -7,7 +7,7 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { useClientConfig } from "@/lib/config.client";
-import { AlertTriangle, RefreshCw, Home, Bug, Copy, Check } from "lucide-react";
+import { AlertTriangle, RefreshCw, Home, Bug, Copy, Check, ArrowLeft } from "lucide-react";
 import { getServerConfigServerFn } from "@/lib/get-server-config.server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -118,6 +118,30 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     return { user };
   },
   errorComponent: RootErrorComponent,
+  notFoundComponent: () => (
+    <div className="min-h-screen flex items-center justify-center bg-page-bg px-4 font-sans">
+      <Card className="w-full max-w-lg border-steel-700 bg-card-elevated">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl text-white">Page not found</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-center text-steel-400">The page you're looking for doesn't exist.</p>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <Button onClick={() => window.history.back()} variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Go back
+            </Button>
+            <Link to="/" className="inline-flex">
+              <Button className="w-full sm:w-auto">
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  ),
   head: () => ({
     meta: [
       {
@@ -168,7 +192,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <ToastContainer position="top-right" autoClose={4000} theme="light" />
         {config.environment === "development" && (

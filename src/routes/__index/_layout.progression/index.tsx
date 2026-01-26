@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Activity, Calendar, TrendingUp, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { ProgressionChart } from "@/components/progression-chart";
 import { movementsForProgressionQueryOptions, movementMetricsQueryOptions } from "./-queries/progression";
@@ -52,7 +53,7 @@ function ProgressionPage() {
   const selectedMovement = movements.find((m) => m.id === selectedMovementId);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto md:pt-8 pb-12">
+    <div className="space-y-6 max-w-4xl mx-auto pt-6 md:pt-8 pb-12">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <Activity className="w-8 h-8 text-primary" />
@@ -63,18 +64,13 @@ function ProgressionPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="space-y-1">
           <label className="text-[10px] font-bold text-steel-500 uppercase ml-1">Exercise</label>
-          <Select value={selectedMovementId} onValueChange={setSelectedMovementId}>
-            <SelectTrigger data-testid="exercise-select" className="bg-steel-900/50 border-steel-700 h-12">
-              <SelectValue placeholder="Select an exercise..." />
-            </SelectTrigger>
-            <SelectContent>
-              {movements.map((m) => (
-                <SelectItem key={m.id} value={m.id}>
-                  {m.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            data-testid="exercise-select"
+            value={selectedMovementId}
+            onChange={setSelectedMovementId}
+            options={movements.map((m) => ({ id: m.id, name: m.name }))}
+            placeholder="Select an exercise..."
+          />
         </div>
 
         <div className="space-y-1">

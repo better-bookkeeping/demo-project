@@ -56,7 +56,7 @@ function MovementsPage() {
   const filteredMovements = movements.filter((m) => m.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto md:pt-8">
+    <div className="space-y-6 max-w-6xl mx-auto pt-6 md:pt-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-heading font-black text-white uppercase italic tracking-wide">

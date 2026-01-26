@@ -7,7 +7,6 @@ import { nitro } from "nitro/vite";
 
 const config = defineConfig({
   plugins: [
-    // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
