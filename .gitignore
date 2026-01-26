@@ -28,3 +28,6 @@ generated/
 playwright-report/
 test-results/
 e2e/.e2e-env.json
+
+# Local database
+db/*.db
