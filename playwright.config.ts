@@ -60,5 +60,10 @@ export default defineConfig({
       testMatch: "**/error-scenarios.spec.ts",
       use: { ...devices["Desktop Chrome"] },
     },
+    {
+      name: "security",
+      testMatch: "**/security.spec.ts",
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
 });
