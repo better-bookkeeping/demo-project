@@ -12,6 +12,7 @@ export const searchFoodsServerFn = createServerFn()
   )
   .handler(
     async ({
+      context,
       data,
     }: {
       context: { user: { id: string } };
@@ -22,10 +23,17 @@ export const searchFoodsServerFn = createServerFn()
 
       const foods = await prisma.food.findMany({
         where: {
-          OR: [
-            { name: { startsWith: searchTerm, mode: "insensitive" } },
-            { name: { contains: searchTerm, mode: "insensitive" } },
-            { category: { contains: searchTerm, mode: "insensitive" } },
+          AND: [
+            {
+              OR: [{ isCustom: false }, { userId: context.user.id }],
+            },
+            {
+              OR: [
+                { name: { startsWith: searchTerm, mode: "insensitive" } },
+                { name: { contains: searchTerm, mode: "insensitive" } },
+                { category: { contains: searchTerm, mode: "insensitive" } },
+              ],
+            },
           ],
         },
         orderBy: [{ isCustom: "desc" }, { name: "asc" }],
@@ -39,19 +47,21 @@ export const searchFoodsServerFn = createServerFn()
 export const getFoodByIdServerFn = createServerFn()
   .middleware([authMiddleware])
   .inputValidator(z.object({ id: z.string() }))
-  .handler(async ({ data }: { context: { user: { id: string } }; data: { id: string } }) => {
-      const prisma = await getServerSidePrismaClient();
-      const food = await prisma.food.findUnique({
-        where: { id: data.id },
-      });
+  .handler(async ({ context, data }: { context: { user: { id: string } }; data: { id: string } }) => {
+    const prisma = await getServerSidePrismaClient();
+    const food = await prisma.food.findFirst({
+      where: {
+        id: data.id,
+        OR: [{ isCustom: false }, { userId: context.user.id }],
+      },
+    });
 
-      if (!food) {
-        throw new Error("Food not found");
-      }
-
-      return food;
+    if (!food) {
+      throw new Error("Food not found");
     }
-  );
+
+    return food;
+  });
 
 export const createCustomFoodServerFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
