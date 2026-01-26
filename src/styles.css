@@ -1,5 +1,169 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: oklch(37.8% 0.077 168.94);
+  /* Fonts */
+  --font-sans: "Barlow", sans-serif;
+  --font-heading: "Barlow Condensed", sans-serif;
+
+  /* Primary - Neon Orange for main actions (#F97316) */
+  --color-primary: oklch(69% 0.23 35);
+  --color-primary-foreground: oklch(98% 0.01 25);
+
+  /* Secondary - Success Green (#22C55E) */
+  --color-secondary: oklch(65% 0.18 145);
+  --color-secondary-foreground: oklch(98% 0.01 25);
+
+  /* Accent - Concrete Gray */
+  --color-accent: oklch(60% 0.01 250);
+  --color-accent-foreground: oklch(98% 0.01 25);
+
+  /* Backgrounds - Deep Carbon to Slate */
+  --color-page-bg: #09090b;
+  --color-card: #18181b;
+  --color-card-elevated: #27272a;
+
+  /* Semantic colors */
+  --color-success: #22C55E;
+  --color-warning: oklch(75% 0.15 75);
+  --color-error: oklch(60% 0.22 25);
+
+  /* Text colors */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
+
+  /* Borders */
+  --color-border: #27272a;
+  --color-border-strong: #3f3f46;
+  --color-border-subtle: #18181b;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+
+  /* Glow effects */
+  --glow-primary: 0 0 20px rgba(249, 115, 22, 0.4);
+
+  /* Steel palette - Mapped to Zinc for the Gym/Industrial look */
+  --color-steel-50: #fafafa;
+  --color-steel-100: #f4f4f5;
+  --color-steel-200: #e4e4e7;
+  --color-steel-300: #d4d4d8;
+  --color-steel-400: #a1a1aa;
+  --color-steel-500: #71717a;
+  --color-steel-600: #52525b;
+  --color-steel-700: #3f3f46;
+  --color-steel-800: #27272a;
+  --color-steel-900: #18181b;
+  --color-steel-950: #09090b;
+}
+
+/* Base styles */
+:root {
+  font-family: var(--font-sans);
+  background-color: var(--color-page-bg);
+  color: var(--color-text-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Utility classes */
+
+/* Hero number display - for large stat numbers */
+.text-hero {
+  font-family: var(--font-heading);
+  font-size: 3.75rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+}
+
+/* Stat number display - for medium stat numbers */
+.text-stat {
+  font-family: var(--font-heading);
+  font-size: 1.875rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+}
+
+/* Tabular numbers for data */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Card surface utility */
+.surface-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem; /* Blocky look */
+}
+
+/* Elevated card surface */
+.surface-card-elevated {
+  background-color: var(--color-card-elevated);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.25rem;
+}
+
+/* Accent left border utility */
+.accent-border-left {
+  border-left: 4px solid var(--color-primary);
+  padding-left: 1rem;
+}
+
+/* Dark page background */
+.bg-page {
+  background-color: var(--color-page-bg);
+}
+
+/* Trend indicators */
+.trend-up {
+  color: var(--color-success); /* Green for up/good in gym context? Usually weight up is good for strength, bad for bodyweight? Let's stick to Green = Good */
+}
+
+.trend-down {
+  color: var(--color-error);
+}
+
+/* Chart gradient fill */
+.chart-gradient-primary {
+  stop-color: var(--color-primary);
+}
+
+/* PR celebration animation */
+@keyframes pr-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
+    border-color: var(--color-border);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(249, 115, 22, 0.4);
+    border-color: var(--color-primary);
+  }
+}
+
+.pr-celebration {
+  animation: pr-pulse 0.6s ease-out 2;
+}
+
+/* Glow on hover */
+.glow-hover:hover {
+  box-shadow: 0 0 15px rgba(249, 115, 22, 0.25);
+  border-color: var(--color-primary);
+}
+
+/* Focus ring for dark mode */
+.focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-page-bg), 0 0 0 4px var(--color-primary);
 }

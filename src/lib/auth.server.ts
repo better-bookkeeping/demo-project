@@ -1,13 +1,21 @@
 import crypto from "node:crypto";
+import argon2 from "argon2";
 import { redirect } from "@tanstack/react-router";
 import { getCookie, setCookie, deleteCookie } from "@tanstack/react-start/server";
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { sessionCookieName } from "./auth.consts";
 import { getServerSidePrismaClient } from "./db.server";
+import { checkRateLimit } from "./rate-limiter";
+import { passwordSchema } from "./password-validation";
 import { z } from "zod";
 
-// In production, use a proper secret from environment variables
-const COOKIE_SECRET = process.env.COOKIE_SECRET || "dev-secret-change-in-production";
+// Environment variables - set via .env.local or Docker env_file
+const APP_ENVIRONMENT = process.env.VITE_ENVIRONMENT || process.env.ENVIRONMENT || process.env.NODE_ENV;
+const isProduction = APP_ENVIRONMENT === "production";
+const COOKIE_SECRET: string = process.env.COOKIE_SECRET || (!isProduction ? "dev-cookie-secret" : "");
+if (!COOKIE_SECRET) {
+  throw new Error("COOKIE_SECRET is required in production");
+}
 
 /**
  * Signs a user ID to create a tamper-proof session token
@@ -35,11 +43,11 @@ function verifySessionToken(token: string): string | null {
  */
 function setSessionCookie(userId: string) {
   const token = signUserId(userId);
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
   setCookie(sessionCookieName, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: isProduction,
     sameSite: "lax",
     expires: expiresAt,
   });
@@ -63,6 +71,7 @@ export const getUserServerFn = createServerFn().handler(async () => {
   const prisma = await getServerSidePrismaClient();
   const user = await prisma.user.findUnique({
     where: { id: userId },
+    select: { id: true, email: true, name: true },
   });
 
   return user;
@@ -74,6 +83,7 @@ export const getUserServerFn = createServerFn().handler(async () => {
 export const signInServerFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ email: z.string().email(), password: z.string() }))
   .handler(async ({ data }: { data: { email: string; password: string } }) => {
+    checkRateLimit();
     const { email, password } = data;
 
     const prisma = await getServerSidePrismaClient();
@@ -81,7 +91,12 @@ export const signInServerFn = createServerFn({ method: "POST" })
       where: { email },
     });
 
-    if (!user || user.password !== password) {
+    if (!user || !user.passwordHash) {
+      return { success: false as const, error: "Invalid email or password" };
+    }
+
+    const passwordMatch = await argon2.verify(user.passwordHash, password);
+    if (!passwordMatch) {
       return { success: false as const, error: "Invalid email or password" };
     }
 
@@ -94,8 +109,9 @@ export const signInServerFn = createServerFn({ method: "POST" })
  * Creates a new user account
  */
 export const createAccountServerFn = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ email: z.email(), name: z.string().min(1), password: z.string().min(6) }))
+  .inputValidator(z.object({ email: z.email(), name: z.string().min(1), password: passwordSchema }))
   .handler(async ({ data }: { data: { email: string; name: string; password: string } }) => {
+    checkRateLimit();
     const { email, name, password } = data;
 
     const prisma = await getServerSidePrismaClient();
@@ -108,8 +124,10 @@ export const createAccountServerFn = createServerFn({ method: "POST" })
       return { success: false as const, error: "An account with this email already exists" };
     }
 
+    const passwordHash = await argon2.hash(password);
+
     const user = await prisma.user.create({
-      data: { email, name, password },
+      data: { email, name, passwordHash },
     });
 
     setSessionCookie(user.id);
@@ -124,6 +142,38 @@ export const logoutServerFn = createServerFn({ method: "POST" }).handler(async (
   deleteCookie(sessionCookieName);
   return { success: true };
 });
+
+/**
+ * Creates a test account for E2E testing
+ * This is a simplified version that returns the user without setting session cookie
+ */
+export const createTestAccountServerFn = createServerFn({ method: "POST" })
+  .inputValidator(z.object({ email: z.string().email(), name: z.string().min(1), password: passwordSchema }))
+  .handler(async ({ data }: { data: { email: string; name: string; password: string } }) => {
+    if (APP_ENVIRONMENT !== "test" && process.env.NODE_ENV !== "test") {
+      throw new Error("Test-only endpoint");
+    }
+    const { email, name, password } = data;
+
+    const prisma = await getServerSidePrismaClient();
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return { success: false as const, error: "An account with this email already exists" };
+    }
+
+    const passwordHash = await argon2.hash(password);
+
+    const user = await prisma.user.create({
+      data: { email, name, passwordHash },
+      select: { id: true, email: true, name: true },
+    });
+
+    return { success: true as const, user };
+  });
 
 /**
  * Authentication middleware that ensures user is logged in

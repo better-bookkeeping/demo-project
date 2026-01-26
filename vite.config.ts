@@ -5,9 +5,11 @@ import viteTsConfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
 
+const APP_ENVIRONMENT = process.env.VITE_ENVIRONMENT || process.env.ENVIRONMENT || process.env.NODE_ENV;
+const isDevEnvironment = APP_ENVIRONMENT === "development" || APP_ENVIRONMENT === "test";
+
 const config = defineConfig({
   plugins: [
-    // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
@@ -15,14 +17,23 @@ const config = defineConfig({
     tanstackStart(),
     nitro({
       preset: "node-server",
+      routeRules: {
+        "/**": {
+          headers: {
+            "X-Frame-Options": "DENY",
+            "X-Content-Type-Options": "nosniff",
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+          }
+        }
+      }
     }),
     viteReact(),
   ],
   build: {
-    sourcemap: process.env.ENVIRONMENT === "development" || process.env.ENVIRONMENT === "test",
+    sourcemap: isDevEnvironment,
   },
   server: {
-    allowedHosts: ["onboarding.abacus.local"],
+    allowedHosts: ["onboarding.abacus.local", "localhost", "127.0.0.1"],
     watch: { usePolling: true },
   },
 });

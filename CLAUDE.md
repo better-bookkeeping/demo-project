@@ -13,14 +13,14 @@ This project uses **Bun** as the package manager and runtime.
 
 ### Local Development
 
-- `bun run dev` - Start development server on port 3000
+- `bun run dev` - Start development server on port 3902
 - `bun run build` - Build for production
 - `bun run start` - Start production server
 - `bun run test` - Run tests with Vitest
 
 ### Docker Development
 
-- `bun run dev:docker` or `./scripts/dev.sh up` - Start full Docker development environment (port 3200)
+- `bun run dev:docker` or `./scripts/dev.sh up` - Start full Docker development environment (port 3902)
 - `bun run dev:docker:down` or `./scripts/dev.sh down` - Stop Docker services
 
 The Docker setup uses volume mounts for hot reloading and ensures TypeScript type generation works locally.
@@ -153,6 +153,6 @@ The onboarding app **does not handle Stripe webhooks**. Subscription status upda
 
 ## Docker Notes
 
-- Development container runs on port 3200 (maps to internal port 3000)
+- Development container runs on port 3902 (maps to internal port 3902)
 - Uses user ID/group ID mapping for file permissions
 - Volume mounts ensure local development experience with Docker benefits

@@ -7,20 +7,50 @@ datasource db {
   provider = "postgresql"
 }
 
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  name      String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  password  String
-  workouts  Workout[]
+  id             String          @id @default(uuid())
+  email          String          @unique
+  name           String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  passwordHash   String
+  weights        Weight[]
+  workouts       Workout[]
+  movements      Movement[]
+  nutritions     Nutrition[]
+  nutritionGoal  NutritionGoal?
+  goalWeight     Float?
+  goalType       String?
+  heightFeet     Int?
+  heightInches   Int?
+}
+
+model Weight {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  value      Float
+  recordedAt DateTime @default(now())
+
+  @@index([userId, recordedAt])
 }
 
 model Movement {
-  id   String @id @default(uuid())
-  name String
-  sets Set[]
+  id           String  @id @default(uuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id])
+  name         String
+  isBodyWeight Boolean @default(false)
+  sets         Set[]
+
+  @@index([userId])
 }
 
 model Workout {
@@ -29,6 +59,8 @@ model Workout {
   id          String    @id @default(uuid())
   completedAt DateTime?
   sets        Set[]
+
+  @@index([userId, completedAt])
 }
 
 model Set {
@@ -38,5 +70,52 @@ model Set {
   movementId String
   movement   Movement @relation(fields: [movementId], references: [id])
   reps       Int
-  weight     Int
+  weight     Float
+
+  @@index([workoutId])
+  @@index([movementId])
+}
+
+model Nutrition {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  mealType   MealType
+  food       String
+  calories   Int
+  protein    Float?
+  carbs      Float?
+  fat        Float?
+  recordedAt DateTime @default(now())
+
+  @@index([userId, recordedAt])
+}
+
+model NutritionGoal {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id])
+  calories  Int
+  protein   Float?
+  carbs     Float?
+  fat       Float?
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Food {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  calories    Int
+  protein     Float
+  carbs       Float
+  fat         Float
+  servingSize String?
+  isCustom    Boolean  @default(false)
+  userId      String?
+
+  @@index([name])
+  @@index([category])
+  @@index([isCustom, userId])
 }
