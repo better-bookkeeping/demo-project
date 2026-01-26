@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import { E2E_WORKER_COUNT } from "./e2e/config";
 
+const playwrightPort = Number(process.env.PORT || 3902);
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -9,14 +11,14 @@ export default defineConfig({
   workers: E2E_WORKER_COUNT,
   reporter: "html",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: `http://localhost:${playwrightPort}`,
     trace: "on-first-retry",
   },
   webServer: {
     command: "bun run dev:local",
-    url: "http://localhost:3000",
+    port: playwrightPort,
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: 180 * 1000,
   },
   globalSetup: "./e2e/global-setup.ts",
   globalTeardown: "./e2e/global-teardown.ts",
