@@ -78,6 +78,8 @@ jobs:
         run: bun install
       - name: Generate Prisma client
         run: bun run generate
+      - name: Generate route tree
+        run: bunx tsr generate
       - name: Apply migrations
         run: bunx prisma migrate deploy
       - name: Install Playwright browsers
