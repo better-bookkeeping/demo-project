@@ -66,7 +66,6 @@ export const deleteMovementServerFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const prisma = await getServerSidePrismaClient();
 
-    // Check if movement belongs to user and exists
     const movement = await prisma.movement.findFirst({
       where: {
         id: data.id,
@@ -93,8 +92,3 @@ export const deleteMovementServerFn = createServerFn({ method: "POST" })
 
     return { success: true };
   });
-
-export const seedDefaultMovementsServerFn = createServerFn({ method: "POST" }).handler(async () => {
-  // This function is now deprecated as seeding happens on-demand per user
-  return { success: true, count: 0 };
-});

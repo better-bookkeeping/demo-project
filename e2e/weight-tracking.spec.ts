@@ -504,11 +504,8 @@ test.describe("Weight Tracking", () => {
         await page.getByTestId("height-inches-input").fill("0");
         await page.getByTestId("save-goals-button").click();
 
-        // Stats section only appears after logging weight, so we need to log a weight
         await logWeight(page, "180");
 
-        // Now check that BMI displays the calculated value, not "---"
-        // BMI for 180 lbs at 6'0" = 24.4
         await expect(page.getByTestId("bmi-display")).toBeVisible();
       });
 
