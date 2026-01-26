@@ -12,7 +12,7 @@ import { z } from "zod";
 // Environment variables - set via .env.local or Docker env_file
 const APP_ENVIRONMENT = process.env.VITE_ENVIRONMENT || process.env.ENVIRONMENT || process.env.NODE_ENV;
 const isProduction = APP_ENVIRONMENT === "production";
-const COOKIE_SECRET = process.env.COOKIE_SECRET || (!isProduction ? "dev-cookie-secret" : undefined);
+const COOKIE_SECRET: string = process.env.COOKIE_SECRET || (!isProduction ? "dev-cookie-secret" : "");
 if (!COOKIE_SECRET) {
   throw new Error("COOKIE_SECRET is required in production");
 }
