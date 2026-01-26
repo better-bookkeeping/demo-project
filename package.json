@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "generate": "prisma generate",
+    "seed:foods": "bun run prisma/seed-foods.ts",
     "test": "playwright test",
     "test:ui": "playwright test --ui"
   },
