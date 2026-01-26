@@ -13,7 +13,7 @@ async function globalSetup(config: FullConfig) {
 
   try {
     const timestamp = Date.now();
-    const testUserPassword = "testpass123";
+    const testUserPassword = "Testpass123!";
     const workerEmails: string[] = [];
 
     for (let i = 0; i < E2E_WORKER_COUNT; i++) {

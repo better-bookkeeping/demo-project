@@ -128,15 +128,30 @@ async function signIn(page: Page, email: string, password: string): Promise<void
   await expect(emailInput).toHaveValue(email);
   await expect(passwordInput).toHaveValue(password);
 
+  page.on("console", msg => {
+    if (msg.type() === "error") {
+      console.error("Browser console error:", msg.text());
+    }
+  });
+
   await submitButton.click();
 
-  await page.waitForURL((url) => !url.pathname.includes("sign-in"), { timeout: 10000 });
+  await page.waitForTimeout(1000);
 
-  const errorLocator = page.getByText(/invalid email or password/i);
-  const errorVisible = await errorLocator.isVisible().catch(() => false);
-  if (errorVisible) {
-    throw new Error(`Sign-in failed: Invalid email or password for ${email}`);
+  const currentUrl = page.url();
+  if (currentUrl.includes("sign-in")) {
+    const errorDiv = page.locator(".text-error").or(page.locator(".bg-error\\/10")).or(page.locator("[class*=\"error\"]")).first();
+    const errorExists = await errorDiv.isVisible().catch(() => false);
+    if (errorExists) {
+      const errorText = await errorDiv.textContent();
+      throw new Error(`Sign-in failed with error: ${errorText}`);
+    }
+
+    const pageText = await page.textContent("body");
+    console.error("Page text after sign-in attempt:", pageText?.substring(0, 500));
   }
+
+  await page.waitForURL((url) => !url.pathname.includes("sign-in"), { timeout: 10000 });
 }
 
 async function signOut(page: Page): Promise<void> {
