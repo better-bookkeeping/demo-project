@@ -42,9 +42,48 @@ jobs:
       - name: Run typecheck
         run: bun run typecheck
 
-  build-and-push:
+  e2e:
     runs-on: ubuntu-latest
     needs: [commitlint, typecheck]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: demo_project
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/demo_project
+      VITE_ENVIRONMENT: test
+      NODE_ENV: test
+      COOKIE_SECRET: test-secret
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install
+      - name: Generate Prisma client
+        run: bun run generate
+      - name: Apply migrations
+        run: bunx prisma migrate deploy
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps
+      - name: Run e2e tests
+        run: bun run test
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: [commitlint, typecheck, e2e]
     if: >
       github.event_name == 'push' && (
         github.ref == 'refs/heads/main' ||
