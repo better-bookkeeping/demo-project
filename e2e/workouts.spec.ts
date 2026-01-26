@@ -1,4 +1,4 @@
-import { test, expect, waitForHydration, WAIT } from "./fixtures/auth";
+import { test, expect, waitForHydration } from "./fixtures/auth";
 import type { Page } from "@playwright/test";
 
 async function ensureNoActiveWorkout(page: Page) {
@@ -9,11 +9,41 @@ async function ensureNoActiveWorkout(page: Page) {
     if (await finishAnywayButton.isVisible({ timeout: 2000 }).catch(() => false)) {
       await finishAnywayButton.click();
     }
-    await page.waitForTimeout(WAIT.MEDIUM);
+    await page.getByTestId("start-workout-button").waitFor({ state: "visible", timeout: 5000 });
   }
 }
 
-test.describe.serial("Workouts", () => {
+async function completeWorkout(page: Page, weight: string, reps: string = "5") {
+  await page.goto("/current-workout");
+  await waitForHydration(page);
+
+  const hasActiveWorkout = await page.getByTestId("active-workout-state").isVisible().catch(() => false);
+  if (!hasActiveWorkout) {
+    await page.getByTestId("start-workout-button").click();
+    await expect(page.getByTestId("current-workout-heading")).toBeVisible();
+  }
+
+  const movementSelect = page.getByTestId("movement-select");
+  await movementSelect.waitFor({ state: "visible" });
+  await movementSelect.click();
+  await page.getByRole("listbox").waitFor({ state: "visible" });
+  await page.getByRole("option").first().click();
+
+  const weightInput = page.getByTestId("weight-input");
+  const repsInput = page.getByTestId("reps-input");
+  await weightInput.click();
+  await weightInput.pressSequentially(weight);
+  await repsInput.click();
+  await repsInput.pressSequentially(reps);
+  await expect(page.getByTestId("log-set-button")).toBeEnabled();
+  await page.getByTestId("log-set-button").click();
+  await expect(page.getByTestId("set-item").first()).toBeVisible({ timeout: 10000 });
+
+  await page.getByTestId("finish-workout-button").click();
+  await expect(page.getByTestId("ready-to-lift-heading")).toBeVisible({ timeout: 15000 });
+}
+
+test.describe("Workouts", () => {
   test.beforeEach(async ({ auth }) => {
     await auth.ensureTestUser();
     await auth.signIn();
@@ -22,10 +52,8 @@ test.describe.serial("Workouts", () => {
   test.afterEach(async ({ page }) => {
     try {
       await page.keyboard.press("Escape");
-      await page.waitForTimeout(WAIT.SHORT);
-    } catch {
-      // Cleanup errors are acceptable
-    }
+      await page.waitForTimeout(100);
+    } catch {}
   });
 
   test.describe("create", () => {
@@ -105,74 +133,11 @@ test.describe.serial("Workouts", () => {
 
   test.describe("complete", () => {
     test("should mark the current workout as completed", async ({ page }) => {
-      await page.goto("/current-workout");
-      await waitForHydration(page);
-
-      const hasActiveWorkout = await page.getByTestId("active-workout-state").isVisible().catch(() => false);
-
-      if (!hasActiveWorkout) {
-        await page.getByTestId("start-workout-button").click();
-        await expect(page.getByTestId("current-workout-heading")).toBeVisible();
-        await page.waitForTimeout(WAIT.MEDIUM);
-      }
-
-      const movementSelect = page.getByTestId("movement-select");
-      await movementSelect.waitFor({ state: "visible" });
-      await movementSelect.click();
-      await page.getByRole("listbox").waitFor({ state: "visible" });
-      await page.getByRole("option").first().click();
-      await page.waitForTimeout(WAIT.SHORT);
-
-      const weightInput = page.getByTestId("weight-input");
-      const repsInput = page.getByTestId("reps-input");
-      await weightInput.click();
-      await weightInput.pressSequentially("135");
-      await repsInput.click();
-      await repsInput.pressSequentially("10");
-      await expect(page.getByTestId("log-set-button")).toBeEnabled();
-      await page.getByTestId("log-set-button").click();
-
-      await expect(page.getByTestId("set-item").first()).toBeVisible({ timeout: 10000 });
-
-      await page.getByTestId("finish-workout-button").click();
-      await page.waitForTimeout(WAIT.MEDIUM);
-
-      await expect(page.getByTestId("ready-to-lift-heading")).toBeVisible({ timeout: 15000 });
+      await completeWorkout(page, "135", "10");
     });
 
     test("should move completed workout to history", async ({ page }) => {
-      await page.goto("/current-workout");
-      await waitForHydration(page);
-
-      const hasActiveWorkout = await page.getByTestId("active-workout-state").isVisible().catch(() => false);
-
-      if (!hasActiveWorkout) {
-        await page.getByTestId("start-workout-button").click();
-        await expect(page.getByTestId("current-workout-heading")).toBeVisible();
-        await page.waitForTimeout(WAIT.MEDIUM);
-      }
-
-      const movementSelect = page.getByTestId("movement-select");
-      await movementSelect.waitFor({ state: "visible" });
-      await movementSelect.click();
-      await page.getByRole("listbox").waitFor({ state: "visible" });
-      await page.getByRole("option").first().click();
-      await page.waitForTimeout(WAIT.SHORT);
-
-      const weightInput = page.getByTestId("weight-input");
-      const repsInput = page.getByTestId("reps-input");
-      await weightInput.click();
-      await weightInput.pressSequentially("200");
-      await repsInput.click();
-      await repsInput.pressSequentially("5");
-      await expect(page.getByTestId("log-set-button")).toBeEnabled();
-      await page.getByTestId("log-set-button").click();
-
-      await expect(page.getByTestId("set-item").first()).toBeVisible({ timeout: 10000 });
-
-      await page.getByTestId("finish-workout-button").click();
-      await page.waitForTimeout(WAIT.MEDIUM);
-      await expect(page.getByTestId("ready-to-lift-heading")).toBeVisible({ timeout: 15000 });
+      await completeWorkout(page, "200", "5");
 
       await page.goto("/workout-history");
       await waitForHydration(page);
@@ -190,7 +155,6 @@ test.describe.serial("Workouts", () => {
       if (!hasActiveWorkout) {
         await page.getByTestId("start-workout-button").click();
         await expect(page.getByTestId("current-workout-heading")).toBeVisible();
-        await page.waitForTimeout(WAIT.MEDIUM);
       }
 
       await page.getByTestId("finish-workout-button").click();
@@ -199,45 +163,13 @@ test.describe.serial("Workouts", () => {
       await expect(page.getByTestId("empty-workout-message")).toBeVisible();
 
       await page.getByTestId("finish-anyway-button").click();
-      await page.waitForTimeout(WAIT.MEDIUM);
-
       await expect(page.getByTestId("ready-to-lift-heading")).toBeVisible({ timeout: 15000 });
     });
   });
 
   test.describe("delete", () => {
     test("should delete selected workouts from history", async ({ page }) => {
-      await page.goto("/current-workout");
-      await waitForHydration(page);
-
-      const hasActiveWorkout = await page.getByTestId("active-workout-state").isVisible().catch(() => false);
-
-      if (!hasActiveWorkout) {
-        await page.getByTestId("start-workout-button").click();
-        await expect(page.getByTestId("current-workout-heading")).toBeVisible();
-        await page.waitForTimeout(WAIT.MEDIUM);
-      }
-
-      const movementSelect = page.getByTestId("movement-select");
-      await movementSelect.waitFor({ state: "visible" });
-      await movementSelect.click();
-      await page.getByRole("listbox").waitFor({ state: "visible" });
-      await page.getByRole("option").first().click();
-      await page.waitForTimeout(WAIT.SHORT);
-
-      const weightInput = page.getByTestId("weight-input");
-      const repsInput = page.getByTestId("reps-input");
-      await weightInput.click();
-      await weightInput.pressSequentially("100");
-      await repsInput.click();
-      await repsInput.pressSequentially("8");
-      await expect(page.getByTestId("log-set-button")).toBeEnabled();
-      await page.getByTestId("log-set-button").click();
-      await expect(page.getByTestId("set-item").first()).toBeVisible({ timeout: 10000 });
-
-      await page.getByTestId("finish-workout-button").click();
-      await page.waitForTimeout(WAIT.MEDIUM);
-      await expect(page.getByTestId("ready-to-lift-heading")).toBeVisible({ timeout: 15000 });
+      await completeWorkout(page, "100", "8");
 
       await page.goto("/workout-history");
       await waitForHydration(page);
@@ -251,24 +183,27 @@ test.describe.serial("Workouts", () => {
 
       await page.getByTestId("delete-selected-button").click();
 
-      await page.waitForTimeout(WAIT.LONG);
-
-      const finalWorkoutCount = await page.getByTestId("workout-card").count();
-      expect(finalWorkoutCount).toBeLessThan(initialWorkoutCount);
+      await page.waitForFunction(
+        (initialCount) => {
+          const cards = document.querySelectorAll('[data-testid="workout-card"]');
+          return cards.length < initialCount;
+        },
+        initialWorkoutCount,
+        { timeout: 5000 }
+      );
     });
 
     test("should allow selecting multiple workouts for deletion", async ({ page }) => {
+      await completeWorkout(page, "100");
+      await completeWorkout(page, "150");
+
       await page.goto("/workout-history");
       await waitForHydration(page);
       await expect(page.getByTestId("logbook-heading")).toBeVisible();
 
       const workoutCards = page.getByTestId("workout-card");
       const cardCount = await workoutCards.count();
-
-      if (cardCount < 2) {
-        test.skip();
-        return;
-      }
+      expect(cardCount).toBeGreaterThanOrEqual(2);
 
       await page.getByTestId("manage-button").click();
 
