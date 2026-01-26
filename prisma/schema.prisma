@@ -7,16 +7,29 @@ datasource db {
   provider = "postgresql"
 }
 
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
 model User {
-  id           String     @id @default(uuid())
-  email        String     @unique
-  name         String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  passwordHash String
-  weights      Weight[]
-  workouts     Workout[]
-  movements    Movement[]
+  id             String          @id @default(uuid())
+  email          String          @unique
+  name           String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  passwordHash   String
+  weights        Weight[]
+  workouts       Workout[]
+  movements      Movement[]
+  nutritions     Nutrition[]
+  nutritionGoal  NutritionGoal?
+  goalWeight     Float?
+  goalType       String?
+  heightFeet     Int?
+  heightInches   Int?
 }
 
 model Weight {
@@ -56,4 +69,47 @@ model Set {
   movement   Movement @relation(fields: [movementId], references: [id])
   reps       Int
   weight     Float
+}
+
+model Nutrition {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  mealType   MealType
+  food       String
+  calories   Int
+  protein    Float?
+  carbs      Float?
+  fat        Float?
+  recordedAt DateTime @default(now())
+
+  @@index([userId, recordedAt])
+}
+
+model NutritionGoal {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id])
+  calories  Int
+  protein   Float?
+  carbs     Float?
+  fat       Float?
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Food {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  calories    Int
+  protein     Float
+  carbs       Float
+  fat         Float
+  servingSize String?
+  isCustom    Boolean  @default(false)
+  userId      String?
+
+  @@index([name])
+  @@index([category])
 }
