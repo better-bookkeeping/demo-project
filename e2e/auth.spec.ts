@@ -43,8 +43,8 @@ test.describe("Authentication", () => {
       const submitButton = page.getByRole("button", { name: /^sign in$/i });
 
       await emailInput.clear();
-      await emailInput.fill("invalid@example.com");
-      await expect(emailInput).toHaveValue("invalid@example.com");
+      await emailInput.fill("nonexistent@test.com");
+      await expect(emailInput).toHaveValue("nonexistent@test.com");
 
       await passwordInput.clear();
       await passwordInput.fill("wrongpassword");
@@ -52,7 +52,9 @@ test.describe("Authentication", () => {
 
       await submitButton.click();
 
-      await expect(page.getByText("Invalid email or password")).toBeVisible({ timeout: 10000 });
+      const errorDiv = page.locator(".text-error");
+      await expect(errorDiv).toBeVisible({ timeout: 10000 });
+      await expect(errorDiv).toHaveText("Invalid email or password");
     });
 
     test("should redirect authenticated users to home page", async ({ page, auth }) => {
@@ -109,7 +111,7 @@ test.describe("Authentication", () => {
     test("should show password requirements hint", async ({ page }) => {
       await page.goto("/create-account");
 
-      await expect(page.getByText(/must be at least 6 characters/i)).toBeVisible();
+      await expect(page.getByText(/must be at least 8 characters/i)).toBeVisible();
     });
 
     test("should show error when email already exists", async ({ page, auth }) => {
@@ -124,7 +126,7 @@ test.describe("Authentication", () => {
 
       await fillWithRetry(nameInput, "Test User");
       await fillWithRetry(emailInput, auth.testUser.email);
-      await fillWithRetry(passwordInput, "newpassword123");
+      await fillWithRetry(passwordInput, "Newpassword123!");
 
       const initialUrl = page.url();
       await submitButton.click();
@@ -156,7 +158,7 @@ test.describe("Authentication", () => {
       await emailInput.clear();
       await emailInput.fill(uniqueEmail);
       await passwordInput.clear();
-      await passwordInput.fill("password123");
+      await passwordInput.fill("Password123!");
       await submitButton.click();
 
       await expect(page).not.toHaveURL(/create-account/, { timeout: 10000 });
