@@ -165,6 +165,14 @@ function WeightTrackingPage() {
   };
 
   const trendColor = getTrendColor(trend?.direction ?? "neutral");
+  const trendBadgeClass =
+    trendColor === "success"
+      ? "bg-success/10 text-success"
+      : trendColor === "error"
+        ? "bg-error/10 text-error"
+        : trendColor === "warning"
+          ? "bg-warning/10 text-warning"
+          : "bg-steel-400/10 text-steel-400";
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pt-6 md:pt-8">
@@ -201,7 +209,7 @@ function WeightTrackingPage() {
                      data-testid="trend-indicator"
                      className={cn(
                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
-                       `bg-${trendColor}/10 text-${trendColor}`
+                       trendBadgeClass
                      )}
                    >
                       {trend.direction === "up" ? <TrendingUp className="w-3 h-3" /> :
