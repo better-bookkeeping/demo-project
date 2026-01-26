@@ -14,8 +14,10 @@ export default defineConfig({
   },
   webServer: {
     command: "bun run dev:local",
+    url: "http://localhost:3000",
     port: 3000,
     reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
   },
   globalSetup: "./e2e/global-setup.ts",
   globalTeardown: "./e2e/global-teardown.ts",
