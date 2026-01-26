@@ -1,4 +1,4 @@
-import { test, expect, waitForHydration, WAIT } from "./fixtures/auth";
+import { test, expect, waitForHydration } from "./fixtures/auth";
 
 test.describe("Progression", () => {
   test.beforeEach(async ({ auth }) => {
@@ -9,52 +9,38 @@ test.describe("Progression", () => {
   test.afterEach(async ({ page }) => {
     try {
       await page.keyboard.press("Escape");
-      await page.waitForTimeout(WAIT.SHORT);
-    } catch {
-      // Cleanup errors are acceptable
-    }
+      await page.waitForTimeout(100);
+    } catch {}
   });
 
   test.describe("page load", () => {
-    test("should display the progression page", async ({ page }) => {
+    test("should load page with all selectors and chart", async ({ page }) => {
       await page.goto("/progression");
       await waitForHydration(page);
 
       await expect(page.getByRole("heading", { name: /progression/i })).toBeVisible();
-    });
-
-    test("should show exercise selector", async ({ page }) => {
-      await page.goto("/progression");
-      await waitForHydration(page);
 
       await expect(page.getByText("Exercise", { exact: true })).toBeVisible();
       await expect(page.getByTestId("exercise-select")).toBeVisible();
-    });
-
-    test("should show metric selector with options", async ({ page }) => {
-      await page.goto("/progression");
-      await waitForHydration(page);
 
       await expect(page.getByText("Metric", { exact: true })).toBeVisible();
-
-      await page.getByTestId("metric-select").click();
-
+      const metricSelect = page.getByTestId("metric-select");
+      await expect(metricSelect).toBeVisible();
+      await metricSelect.click();
       await expect(page.getByRole("option", { name: /max weight/i })).toBeVisible();
       await expect(page.getByRole("option", { name: /total reps/i })).toBeVisible();
       await expect(page.getByRole("option", { name: /total volume/i })).toBeVisible();
-    });
-
-    test("should show date range selector", async ({ page }) => {
-      await page.goto("/progression");
-      await waitForHydration(page);
+      await page.keyboard.press("Escape");
 
       await expect(page.getByText("Period", { exact: true })).toBeVisible();
-
-      await page.getByTestId("period-select").click();
-
+      const periodSelect = page.getByTestId("period-select");
+      await expect(periodSelect).toBeVisible();
+      await periodSelect.click();
       await expect(page.getByRole("option", { name: /last 7 days/i })).toBeVisible();
       await expect(page.getByRole("option", { name: /last 30 days/i })).toBeVisible();
       await expect(page.getByRole("option", { name: /all time/i })).toBeVisible();
+
+      await expect(page.getByTestId("progression-chart")).toBeVisible();
     });
   });
 
@@ -147,13 +133,6 @@ test.describe("Progression", () => {
   });
 
   test.describe("chart display", () => {
-    test("should show chart card", async ({ page }) => {
-      await page.goto("/progression");
-      await waitForHydration(page);
-
-      await expect(page.getByTestId("progression-chart")).toBeVisible();
-    });
-
     test("should update chart title to selected exercise", async ({ page }) => {
       await page.goto("/progression");
       await waitForHydration(page);
