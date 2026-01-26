@@ -20,7 +20,19 @@ case "${1}" in
     # Trap to kill tsr watch when script exits
     trap "kill $TSR_PID 2>/dev/null" EXIT
 
-    USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose --env-file ".env.local" -f $COMPOSE_FILE watch
+    USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose --env-file ".env.local" -f $COMPOSE_FILE up -d
+
+    echo "Waiting for database to be ready..."
+    until docker exec demo-project-db pg_isready -U postgres > /dev/null 2>&1; do
+      sleep 1
+    done
+    echo "Database is ready!"
+
+    echo "Seeding foods..."
+    docker exec demo-project bun run seed:foods || true
+
+    echo "Starting watch mode..."
+    docker compose -f $COMPOSE_FILE watch
     ;;
   "down")
     echo "Shutting down Docker services..."
