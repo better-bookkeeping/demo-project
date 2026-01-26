@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev:local": "bunx vite",
+    "dev:local": "bunx vite --host 0.0.0.0 --port ${PORT:-3902}",
     "dev": "./scripts/dev.sh up",
     "dev:down": "./scripts/dev.sh down",
     "db:migrate": "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/demo_project prisma migrate dev",

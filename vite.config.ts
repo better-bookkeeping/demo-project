@@ -33,7 +33,7 @@ const config = defineConfig({
     sourcemap: isDevEnvironment,
   },
   server: {
-    allowedHosts: ["onboarding.abacus.local"],
+    allowedHosts: ["onboarding.abacus.local", "localhost", "127.0.0.1"],
     watch: { usePolling: true },
   },
 });
