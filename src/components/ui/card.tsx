@@ -1,8 +1,20 @@
 import { cn } from "@/lib/utils";
 import { forwardRef, type HTMLAttributes } from "react";
 
-const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-xl border bg-white shadow-sm", className)} {...props} />
+type CardVariant = "default" | "elevated" | "stat";
+
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
+  variant?: CardVariant;
+}
+
+const variantStyles: Record<CardVariant, string> = {
+  default: "bg-card border-none",
+  elevated: "bg-card-elevated border-none shadow-lg",
+  stat: "bg-card border-l-4 border-l-primary shadow-lg",
+};
+
+const Card = forwardRef<HTMLDivElement, CardProps>(({ className, variant = "default", ...props }, ref) => (
+  <div ref={ref} className={cn("rounded-md", variantStyles[variant], className)} {...props} />
 ));
 Card.displayName = "Card";
 
@@ -12,7 +24,7 @@ const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(({
 CardHeader.displayName = "CardHeader";
 
 const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (
-  <h3 ref={ref} className={cn("text-lg font-semibold leading-none tracking-tight", className)} {...props} />
+  <h3 ref={ref} className={cn("text-xl font-heading font-bold uppercase leading-none tracking-wide text-white", className)} {...props} />
 ));
 CardTitle.displayName = "CardTitle";
 
@@ -22,3 +34,4 @@ const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((
 CardContent.displayName = "CardContent";
 
 export { Card, CardHeader, CardTitle, CardContent };
+export type { CardVariant, CardProps };

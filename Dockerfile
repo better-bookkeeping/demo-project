@@ -10,7 +10,9 @@ RUN groupadd -g ${GROUP_ID} appgroup || true && \
 
 WORKDIR /app
 COPY --chown=${USER_ID}:${GROUP_ID} . .
-RUN apt-get update && apt-get install -y openssl curl gettext-base && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl curl gettext-base postgresql-client && rm -rf /var/lib/apt/lists/*
+
+RUN chmod +x /app/scripts/entry.sh
 
 RUN bun install --frozen-lockfile && chown -R ${USER_ID}:${GROUP_ID} /app
 

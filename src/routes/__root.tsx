@@ -1,4 +1,4 @@
-import { HeadContent, Scripts, createRootRouteWithContext, useRouter } from "@tanstack/react-router";
+import { HeadContent, Scripts, createRootRouteWithContext, useRouter, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import styles from "../styles.css?url";
 import { type QueryClient } from "@tanstack/react-query";
@@ -7,7 +7,7 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { useClientConfig } from "@/lib/config.client";
-import { AlertTriangle, RefreshCw, Home, Bug, Copy, Check } from "lucide-react";
+import { AlertTriangle, RefreshCw, Home, Bug, Copy, Check, ArrowLeft } from "lucide-react";
 import { getServerConfigServerFn } from "@/lib/get-server-config.server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -45,36 +45,36 @@ ${error.stack || "No stack trace available"}`;
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-lg">
+    <div className="min-h-screen flex items-center justify-center bg-page-bg px-4 font-sans">
+      <Card className="w-full max-w-lg border-error/50 bg-card-elevated">
         <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
-            <AlertTriangle className="w-8 h-8 text-red-600" />
+          <div className="mx-auto w-16 h-16 rounded-full bg-error/10 flex items-center justify-center mb-4 border border-error/20">
+            <AlertTriangle className="w-8 h-8 text-error" />
           </div>
-          <CardTitle className="text-xl font-semibold text-gray-900">Something went wrong</CardTitle>
+          <CardTitle className="text-xl text-white">Something went wrong</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="bg-error/10 border-error/20 text-error">
             <Bug className="h-4 w-4" />
             <div className="flex items-start justify-between">
-              <AlertTitle>Error Details</AlertTitle>
+              <AlertTitle className="text-error font-bold uppercase">Error Details</AlertTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={copyErrorToClipboard}
-                className="h-6 px-2 text-red-700 hover:bg-red-100">
+                className="h-6 px-2 text-error hover:bg-error/20 hover:text-white">
                 {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
               </Button>
             </div>
-            <AlertDescription className="mt-2">
+            <AlertDescription className="mt-2 text-error/90">
               {isDev ? (
                 <div className="space-y-2">
-                  <p className="font-medium">{error.name}</p>
-                  <p className="text-sm">{error.message}</p>
+                  <p className="font-medium font-heading">{error.name}</p>
+                  <p className="text-sm font-mono">{error.message}</p>
                   {error.stack && (
                     <details className="mt-2" open>
-                      <summary className="cursor-pointer text-sm font-medium">Stack trace</summary>
-                      <pre className="mt-2 text-xs overflow-x-auto bg-red-100 p-2 rounded whitespace-pre-wrap break-words max-w-full">
+                      <summary className="cursor-pointer text-sm font-medium hover:underline">Stack trace</summary>
+                      <pre className="mt-2 text-xs overflow-x-auto bg-black/50 p-2 rounded whitespace-pre-wrap break-words max-w-full font-mono text-white/80 border border-white/10">
                         {error.stack}
                       </pre>
                     </details>
@@ -102,7 +102,7 @@ ${error.stack || "No stack trace available"}`;
 
           {!isDev && (
             <div className="text-center">
-              <p className="text-sm text-gray-500">Error ID: {Date.now().toString(36)}</p>
+              <p className="text-sm text-steel-500">Error ID: {Date.now().toString(36)}</p>
             </div>
           )}
         </CardContent>
@@ -118,6 +118,30 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     return { user };
   },
   errorComponent: RootErrorComponent,
+  notFoundComponent: () => (
+    <div className="min-h-screen flex items-center justify-center bg-page-bg px-4 font-sans">
+      <Card className="w-full max-w-lg border-steel-700 bg-card-elevated">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl text-white">Page not found</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-center text-steel-400">The page you're looking for doesn't exist.</p>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <Button onClick={() => window.history.back()} variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Go back
+            </Button>
+            <Link to="/" className="inline-flex">
+              <Button className="w-full sm:w-auto">
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  ),
   head: () => ({
     meta: [
       {
@@ -137,14 +161,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         src: "/config.js",
         type: "text/javascript",
       },
-      // ...(import.meta.env.DEV
-      //   ? [
-      //       {
-      //         src: "//www.react-grab.com/script.js",
-      //         crossOrigin: "anonymous" as const,
-      //       },
-      //     ]
-      //   : []),
     ],
     links: [
       {
@@ -161,7 +177,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@300;400;500;600;700&display=swap",
       },
     ],
   }),
@@ -176,7 +192,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="overflow-hidden">
+      <body suppressHydrationWarning>
         {children}
         <ToastContainer position="top-right" autoClose={4000} theme="light" />
         {config.environment === "development" && (

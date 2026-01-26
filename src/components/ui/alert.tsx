@@ -8,10 +8,10 @@ interface AlertProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const variantStyles: Record<AlertVariant, string> = {
-  default: "bg-slate-50 border-slate-200 text-slate-900 [&>svg]:text-slate-600",
-  destructive: "bg-red-50 border-red-200 text-red-900 [&>svg]:text-red-600",
-  warning: "bg-amber-50 border-amber-200 text-amber-900 [&>svg]:text-amber-600",
-  success: "bg-emerald-50 border-emerald-200 text-emerald-900 [&>svg]:text-emerald-600",
+  default: "bg-card border-border text-text-primary [&>svg]:text-steel-400",
+  destructive: "bg-error/10 border-error/20 text-error [&>svg]:text-error",
+  warning: "bg-warning/10 border-warning/20 text-warning [&>svg]:text-warning",
+  success: "bg-success/10 border-success/20 text-success [&>svg]:text-success",
 };
 
 const Alert = forwardRef<HTMLDivElement, AlertProps>(({ className, variant = "default", ...props }, ref) => (

@@ -28,37 +28,42 @@ function CreateAccountPage() {
     setIsLoading(true);
 
     try {
-      console.log("Creating account", { email, name, password });
       const result = await createAccountServerFn({ data: { email, name, password } });
-      console.log("Result", result);
       if (result.success) {
         router.navigate({ to: "/" });
       } else {
         setError(result.error || "Account creation failed");
       }
     } catch (error) {
-      console.error("Error creating account", error);
-      setError("An unexpected error occurred");
+      const message = error && typeof error === "object" && "message" in error
+        ? (error as { message: string }).message
+        : "An unexpected error occurred";
+
+      setError(
+        message.includes("Password") || message.includes("must contain")
+          ? "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character"
+          : message
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-page-bg px-4">
+      <Card variant="elevated" className="w-full max-w-md border border-border">
         <CardHeader className="text-center space-y-2">
-          <img src="/wordmark.svg" alt="Logo" className="h-8 mx-auto" />
-          <CardTitle className="text-2xl font-semibold text-gray-900">Create your account</CardTitle>
-          <p className="text-sm text-gray-500">Get started with your new account</p>
+          <img src="/wordmark.svg" alt="Logo" className="h-8 mx-auto invert" />
+          <CardTitle className="text-2xl font-semibold text-white">Create your account</CardTitle>
+          <p className="text-sm text-steel-400">Get started with your new account</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">{error}</div>
+              <div className="p-3 text-sm text-error bg-error/10 border border-error/20 rounded-lg">{error}</div>
             )}
             <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="text-sm font-medium text-steel-300">
                 Name
               </label>
               <Input
@@ -72,7 +77,7 @@ function CreateAccountPage() {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="text-sm font-medium text-steel-300">
                 Email
               </label>
               <Input
@@ -86,7 +91,7 @@ function CreateAccountPage() {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="text-sm font-medium text-steel-300">
                 Password
               </label>
               <Input
@@ -96,18 +101,18 @@ function CreateAccountPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
                 autoComplete="new-password"
               />
-              <p className="text-xs text-gray-500">Must be at least 6 characters</p>
+              <p className="text-xs text-steel-500">Password must be at least 8 characters with uppercase, lowercase, number, and special character</p>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-gray-500">
+          <p className="mt-4 text-center text-sm text-steel-400">
             Already have an account?{" "}
-            <Link to="/sign-in" className="text-primary hover:underline font-medium">
+            <Link to="/sign-in" className="text-primary hover:text-primary/80 hover:underline font-bold tracking-wide">
               Sign in
             </Link>
           </p>

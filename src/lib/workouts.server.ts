@@ -19,7 +19,6 @@ export const getCurrentWorkoutServerFn = createServerFn()
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     const prisma = await getServerSidePrismaClient();
-    // Get the most recent workout for the user
     const workout = await prisma.workout.findFirst({
       where: { userId: context.user.id, completedAt: null },
       orderBy: { id: "desc" },
@@ -38,10 +37,19 @@ export const completeWorkoutServerFn = createServerFn({ method: "POST" })
     const prisma = await getServerSidePrismaClient();
     const workout = await prisma.workout.findFirst({
       where: { userId: context.user.id, completedAt: null },
+      include: { sets: true },
     });
     if (!workout) {
       return { success: false, error: "No active workout to complete" };
     }
+
+    if (workout.sets.length === 0) {
+      await prisma.workout.delete({
+        where: { id: workout.id },
+      });
+      return { success: true, discarded: true };
+    }
+
     await prisma.workout.update({
       where: { id: workout.id },
       data: { completedAt: new Date() },
@@ -67,6 +75,12 @@ export const addSetServerFn = createServerFn({ method: "POST" })
       if (!workout) {
         return { success: false, error: "No active workout" };
       }
+      const movement = await prisma.movement.findFirst({
+        where: { id: data.movementId, userId: context.user.id },
+      });
+      if (!movement) {
+        return { success: false, error: "Movement not found" };
+      }
       const set = await prisma.set.create({
         data: {
           workoutId: workout.id,
@@ -85,7 +99,6 @@ export const deleteSetServerFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ setId: z.string() }))
   .handler(async ({ context, data }: { context: { user: { id: string } }; data: { setId: string } }) => {
     const prisma = await getServerSidePrismaClient();
-    // Verify the set belongs to the user's active workout
     const set = await prisma.set.findFirst({
       where: { id: data.setId, workout: { userId: context.user.id, completedAt: null } },
     });
@@ -117,7 +130,6 @@ export const deleteWorkoutsServerFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ workoutIds: z.array(z.string()) }))
   .handler(async ({ context, data }: { context: { user: { id: string } }; data: { workoutIds: string[] } }) => {
     const prisma = await getServerSidePrismaClient();
-    // Delete sets first, then workouts (only for this user's workouts)
     await prisma.set.deleteMany({
       where: { workout: { id: { in: data.workoutIds }, userId: context.user.id } },
     });
