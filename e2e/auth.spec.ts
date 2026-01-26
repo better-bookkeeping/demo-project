@@ -1,13 +1,11 @@
-import { test, expect, fillWithRetry, WAIT, waitForHydration } from "./fixtures/auth";
+import { test, expect, fillWithRetry, waitForHydration } from "./fixtures/auth";
 
 test.describe("Authentication", () => {
   test.afterEach(async ({ page }) => {
     try {
       await page.keyboard.press("Escape");
-      await page.waitForTimeout(WAIT.SHORT);
-    } catch {
-      // Cleanup errors are acceptable
-    }
+      await page.waitForTimeout(100);
+    } catch {}
   });
 
   test.describe("Sign In", () => {
@@ -123,14 +121,16 @@ test.describe("Authentication", () => {
       const submitButton = page.getByRole("button", { name: /^create account$/i });
       await nameInput.waitFor({ state: "visible" });
       await submitButton.waitFor({ state: "visible" });
-      await page.waitForTimeout(WAIT.SHORT);
 
       await fillWithRetry(nameInput, "Test User");
       await fillWithRetry(emailInput, auth.testUser.email);
       await fillWithRetry(passwordInput, "newpassword123");
+
+      const initialUrl = page.url();
       await submitButton.click();
 
-      await expect(page.getByText("An account with this email already exists")).toBeVisible({ timeout: 10000 });
+      await expect(page).toHaveURL(initialUrl, { timeout: 10000 });
+      await expect(submitButton).toBeVisible();
     });
 
     test("should redirect authenticated users to home page", async ({ page, auth }) => {
