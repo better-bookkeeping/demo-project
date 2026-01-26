@@ -19,8 +19,6 @@ RUN bun run generate
 # development
 FROM deps AS development
 WORKDIR /app
-COPY --chown=${USER_ID}:${GROUP_ID} scripts/docker-dev-entrypoint.sh /app/scripts/docker-dev-entrypoint.sh
-ENTRYPOINT ["/app/scripts/docker-dev-entrypoint.sh"]
 CMD ["vite", "dev", "--host", "0.0.0.0", "--port", "3000"]
 
 # production
