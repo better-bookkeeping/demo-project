@@ -23,11 +23,10 @@ async function completeWorkout(page: Page, weight: string, reps: string = "5") {
     await expect(page.getByTestId("current-workout-heading")).toBeVisible();
   }
 
-  const movementSelect = page.getByTestId("movement-select");
-  await movementSelect.waitFor({ state: "visible" });
-  await movementSelect.click();
-  await page.getByRole("listbox").waitFor({ state: "visible" });
-  await page.getByRole("option").first().click();
+  await page.getByTestId("searchable-select-trigger").click();
+  const searchInput = page.getByTestId("searchable-select-search");
+  await searchInput.fill("Squat");
+  await page.getByRole("option", { name: /squat/i }).first().click();
 
   const weightInput = page.getByTestId("weight-input");
   const repsInput = page.getByTestId("reps-input");

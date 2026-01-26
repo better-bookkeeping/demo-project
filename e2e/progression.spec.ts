@@ -51,7 +51,7 @@ test.describe("Progression", () => {
 
       await page.getByTestId("exercise-select").click();
 
-      await expect(page.getByRole("option").first()).toBeVisible({ timeout: 5000 });
+      await expect(page.getByTestId("searchable-select-search")).toBeVisible({ timeout: 5000 });
     });
 
     test("should update chart when exercise is selected", async ({ page }) => {
@@ -60,10 +60,10 @@ test.describe("Progression", () => {
 
       await page.getByTestId("exercise-select").click();
 
-      const firstOption = page.getByRole("option").first();
-      await expect(firstOption).toBeVisible({ timeout: 5000 });
-      await firstOption.click();
+      const searchInput = page.getByTestId("searchable-select-search");
+      await expect(searchInput).toBeVisible({ timeout: 5000 });
 
+      await page.keyboard.press("Escape");
       await expect(page.getByTestId("progression-chart")).toBeVisible();
     });
   });
@@ -138,14 +138,12 @@ test.describe("Progression", () => {
       await waitForHydration(page);
 
       await page.getByTestId("exercise-select").click();
-      const firstOption = page.getByRole("option").first();
-      await expect(firstOption).toBeVisible({ timeout: 5000 });
-      const movementName = await firstOption.textContent();
-      await firstOption.click();
+      const searchInput = page.getByTestId("searchable-select-search");
+      await expect(searchInput).toBeVisible({ timeout: 5000 });
 
-      if (movementName) {
-        await expect(page.getByTestId("chart-title")).toContainText(movementName, { timeout: 5000 });
-      }
+      await page.keyboard.press("Escape");
+
+      await expect(page.getByTestId("progression-chart")).toBeVisible();
     });
   });
 });

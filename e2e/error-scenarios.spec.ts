@@ -166,12 +166,12 @@ test.describe("Error Scenarios", () => {
       await searchInput.waitFor({ state: "visible" });
 
       await searchInput.fill("Bench");
-      await expect(page.getByRole("heading", { name: "Bench Press" })).toBeVisible({ timeout: 3000 });
+      await expect(page.getByRole("heading", { name: "Bench Press" }).first()).toBeVisible({ timeout: 3000 });
 
       await searchInput.clear();
       await page.keyboard.press("Enter");
 
-      await expect(page.getByRole("heading", { name: "Bench Press" })).toBeVisible({ timeout: 3000 });
+      await expect(page.getByRole("heading", { name: "Bench Press" }).first()).toBeVisible({ timeout: 3000 });
     });
   });
 });

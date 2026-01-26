@@ -2,8 +2,14 @@ import { test, expect, waitForHydration, fillWithRetry } from "./fixtures/auth";
 import type { Page } from "@playwright/test";
 
 async function logSet(page: Page, movement: string, weight: string, reps: string) {
-  await page.getByRole("combobox").click();
-  await page.getByRole("option", { name: movement }).first().click();
+  const trigger = page.getByTestId("searchable-select-trigger");
+  await trigger.click();
+
+  const searchInput = page.getByTestId("searchable-select-search");
+  await searchInput.fill(movement);
+
+  const option = page.getByRole("option").filter({ hasText: new RegExp(movement, "i") }).first();
+  await option.click();
 
   const weightInput = page.getByTestId("weight-input");
   const repsInput = page.getByTestId("reps-input");
@@ -50,7 +56,7 @@ test.describe("Sets", () => {
     await startButton.click();
 
     await expect(page.getByRole("heading", { name: /current workout/i })).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole("combobox")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId("searchable-select-trigger")).toBeVisible({ timeout: 10000 });
     await waitForHydration(page);
   });
 
@@ -94,8 +100,9 @@ test.describe("Sets", () => {
       const logSetButton = page.getByRole("button", { name: /log set/i });
       await expect(logSetButton).toBeDisabled();
 
-      await page.getByRole("combobox").click();
-      await page.getByRole("option", { name: "Deadlift" }).click();
+      await page.getByTestId("searchable-select-trigger").click();
+      await page.getByTestId("searchable-select-search").fill("Deadlift");
+      await page.getByRole("option").filter({ hasText: "Deadlift" }).first().click();
       await expect(logSetButton).toBeDisabled();
 
       await page.getByTestId("weight-input").fill("315");
@@ -125,7 +132,8 @@ test.describe("Sets", () => {
       await page.goto("/current-workout");
       await waitForHydration(page);
 
-      await page.getByRole("combobox").click();
+      await page.getByTestId("searchable-select-trigger").click();
+      await page.getByTestId("searchable-select-search").fill("Pull");
       const pullUpOption = page.getByRole("option").filter({ hasText: "Pull Up" }).first();
       await pullUpOption.click();
 
@@ -148,20 +156,29 @@ test.describe("Sets", () => {
     });
 
     test("should show sets in the order they were added", async ({ page }) => {
-      await page.getByRole("combobox").click();
-      await page.getByRole("option", { name: "Squat" }).click();
-
       const logSetButton = page.getByRole("button", { name: /log set/i });
+
+      await page.getByTestId("searchable-select-trigger").click();
+      await page.getByTestId("searchable-select-search").fill("Squat");
+      await page.getByRole("option").filter({ hasText: "Squat" }).first().click();
 
       await page.getByTestId("weight-input").fill("135");
       await page.getByTestId("reps-input").fill("10");
       await expect(logSetButton).toBeEnabled();
       await logSetButton.click();
 
+      await page.getByTestId("searchable-select-trigger").click();
+      await page.getByTestId("searchable-select-search").fill("Squat");
+      await page.getByRole("option").filter({ hasText: "Squat" }).first().click();
+
       await page.getByTestId("weight-input").fill("185");
       await page.getByTestId("reps-input").fill("8");
       await expect(logSetButton).toBeEnabled();
       await logSetButton.click();
+
+      await page.getByTestId("searchable-select-trigger").click();
+      await page.getByTestId("searchable-select-search").fill("Squat");
+      await page.getByRole("option").filter({ hasText: "Squat" }).first().click();
 
       await page.getByTestId("weight-input").fill("225");
       await page.getByTestId("reps-input").fill("5");
@@ -202,15 +219,20 @@ test.describe("Sets", () => {
     });
 
     test("should update the sets list after deletion", async ({ page }) => {
-      await page.getByRole("combobox").click();
-      await page.getByRole("option", { name: "Squat" }).first().click();
-
       const logSetButton = page.getByRole("button", { name: /log set/i });
+
+      await page.getByTestId("searchable-select-trigger").click();
+      await page.getByTestId("searchable-select-search").fill("Squat");
+      await page.getByRole("option").filter({ hasText: "Squat" }).first().click();
 
       await page.getByTestId("weight-input").fill("135");
       await page.getByTestId("reps-input").fill("10");
       await expect(logSetButton).toBeEnabled();
       await logSetButton.click();
+
+      await page.getByTestId("searchable-select-trigger").click();
+      await page.getByTestId("searchable-select-search").fill("Squat");
+      await page.getByRole("option").filter({ hasText: "Squat" }).first().click();
 
       await page.getByTestId("weight-input").fill("185");
       await page.getByTestId("reps-input").fill("8");
@@ -344,10 +366,92 @@ test.describe("Sets", () => {
 
   test.describe("body-weight movements", () => {
     test("should show (BW) indicator in movement dropdown for body-weight movements", async ({ page }) => {
-      await page.getByRole("combobox").click();
+      await page.getByTestId("searchable-select-trigger").click();
 
       const pullUpOption = page.getByRole("option").filter({ hasText: "Pull Up" }).first();
       await expect(pullUpOption.getByText("(BW)")).toBeVisible();
+    });
+  });
+
+  test.describe("colored stats cards", () => {
+    test("should show green color for total sets stat", async ({ page }) => {
+      await logSet(page, "Squat", "225", "5");
+
+      const totalSetsStat = page.getByTestId("total-sets-stat");
+      await expect(totalSetsStat).toBeVisible();
+
+      const totalSetsValue = totalSetsStat.getByTestId("total-sets-value");
+      await expect(totalSetsValue).toHaveClass(/text-success/i);
+    });
+
+    test("should show orange color for total volume stat", async ({ page }) => {
+      await logSet(page, "Bench Press", "185", "10");
+
+      const totalVolumeStat = page.getByTestId("total-volume-stat");
+      await expect(totalVolumeStat).toBeVisible();
+
+      const totalVolumeValue = totalVolumeStat.getByTestId("total-volume-value");
+      await expect(totalVolumeValue).toHaveClass(/text-primary/i);
+    });
+
+    test("should show yellow color for movements count stat", async ({ page }) => {
+      await logSet(page, "Squat", "225", "5");
+
+      const movementsCountStat = page.getByTestId("movements-count-stat");
+      await expect(movementsCountStat).toBeVisible();
+
+      const movementsCountValue = movementsCountStat.getByTestId("movements-count-value");
+      await expect(movementsCountValue).toHaveClass(/text-warning/i);
+    });
+
+    test("should update total sets count when adding sets", async ({ page }) => {
+      await logSet(page, "Squat", "225", "5");
+
+      const totalSetsValue = page.getByTestId("total-sets-value");
+      await expect(totalSetsValue).toContainText("1");
+
+      await logSet(page, "Squat", "185", "8");
+
+      await expect(totalSetsValue).toContainText("2");
+    });
+
+    test("should calculate volume correctly (weight × reps)", async ({ page }) => {
+      await logSet(page, "Bench Press", "100", "10");
+
+      const totalVolumeValue = page.getByTestId("total-volume-value");
+      await expect(totalVolumeValue).toContainText("1.0k");
+    });
+
+    test("should increment movements count for new movement", async ({ page }) => {
+      await logSet(page, "Squat", "225", "5");
+
+      const movementsCountValue = page.getByTestId("movements-count-value");
+      await expect(movementsCountValue).toContainText("1");
+
+      await logSet(page, "Bench Press", "185", "8");
+
+      await expect(movementsCountValue).toContainText("2");
+    });
+
+    test("should not increment movements count for same movement", async ({ page }) => {
+      await logSet(page, "Squat", "225", "5");
+      await logSet(page, "Squat", "185", "8");
+
+      const movementsCountValue = page.getByTestId("movements-count-value");
+      await expect(movementsCountValue).toContainText("1");
+    });
+
+    test("should update stats when deleting set", async ({ page }) => {
+      await logSet(page, "Squat", "225", "5");
+      await logSet(page, "Squat", "185", "8");
+
+      const totalSetsValue = page.getByTestId("total-sets-value");
+      await expect(totalSetsValue).toContainText("2");
+
+      const setRow = page.getByTestId("set-item").first();
+      await setRow.getByTestId("delete-set-button").click({ force: true });
+
+      await expect(totalSetsValue).toContainText("1");
     });
   });
 });

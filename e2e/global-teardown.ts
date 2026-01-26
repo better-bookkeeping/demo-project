@@ -75,6 +75,18 @@ async function globalTeardown() {
         where: { userId: { in: userIds } },
       });
 
+      await prisma.nutrition.deleteMany({
+        where: { userId: { in: userIds } },
+      });
+
+      await prisma.nutritionGoal.deleteMany({
+        where: { userId: { in: userIds } },
+      });
+
+      await prisma.food.deleteMany({
+        where: { userId: { in: userIds } },
+      });
+
       await prisma.user.deleteMany({
         where: { id: { in: userIds } },
       });

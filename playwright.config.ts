@@ -46,6 +46,11 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
     {
+      name: "nutrition",
+      testMatch: "**/nutrition.spec.ts",
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
       name: "progression",
       testMatch: "**/progression.spec.ts",
       use: { ...devices["Desktop Chrome"] },

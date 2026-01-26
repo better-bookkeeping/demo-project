@@ -92,7 +92,7 @@ test.describe("Movements", () => {
       await searchInput.waitFor({ state: "visible" });
       await fillWithRetry(searchInput, "Bench");
 
-      await expect(page.getByRole("heading", { name: "Bench Press" })).toBeVisible({ timeout: 3000 });
+      await expect(page.getByRole("heading", { name: "Bench Press" }).first()).toBeVisible({ timeout: 3000 });
       await expect(page.getByRole("heading", { name: "Squat" })).not.toBeVisible({ timeout: 2000 });
     });
   });
