@@ -10,8 +10,12 @@ import { passwordSchema } from "./password-validation";
 import { z } from "zod";
 
 // Environment variables - set via .env.local or Docker env_file
-// Using non-null assertion since this code only runs server-side
-const COOKIE_SECRET = process.env.COOKIE_SECRET!;
+const APP_ENVIRONMENT = process.env.VITE_ENVIRONMENT || process.env.ENVIRONMENT || process.env.NODE_ENV;
+const isProduction = APP_ENVIRONMENT === "production";
+const COOKIE_SECRET = process.env.COOKIE_SECRET || (!isProduction ? "dev-cookie-secret" : undefined);
+if (!COOKIE_SECRET) {
+  throw new Error("COOKIE_SECRET is required in production");
+}
 
 /**
  * Signs a user ID to create a tamper-proof session token
@@ -43,7 +47,7 @@ function setSessionCookie(userId: string) {
 
   setCookie(sessionCookieName, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: isProduction,
     sameSite: "lax",
     expires: expiresAt,
   });
@@ -67,6 +71,7 @@ export const getUserServerFn = createServerFn().handler(async () => {
   const prisma = await getServerSidePrismaClient();
   const user = await prisma.user.findUnique({
     where: { id: userId },
+    select: { id: true, email: true, name: true },
   });
 
   return user;
@@ -145,6 +150,9 @@ export const logoutServerFn = createServerFn({ method: "POST" }).handler(async (
 export const createTestAccountServerFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ email: z.string().email(), name: z.string().min(1), password: passwordSchema }))
   .handler(async ({ data }: { data: { email: string; name: string; password: string } }) => {
+    if (APP_ENVIRONMENT !== "test" && process.env.NODE_ENV !== "test") {
+      throw new Error("Test-only endpoint");
+    }
     const { email, name, password } = data;
 
     const prisma = await getServerSidePrismaClient();
