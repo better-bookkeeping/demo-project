@@ -138,11 +138,14 @@ function WeightTrackingPage() {
                    )}
                  </div>
                  {trend && (
-                   <div className={cn(
-                     "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
-                     trend.direction === "up" ? "bg-success/10 text-success" :
-                     trend.direction === "down" ? "bg-error/10 text-error" : "bg-steel-800 text-steel-400"
-                   )}>
+                   <div
+                     data-testid="trend-indicator"
+                     className={cn(
+                       "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
+                       trend.direction === "up" ? "bg-success/10 text-success" :
+                       trend.direction === "down" ? "bg-error/10 text-error" : "bg-steel-800 text-steel-400"
+                     )}
+                   >
                       {trend.direction === "up" ? <TrendingUp className="w-3 h-3" /> :
                        trend.direction === "down" ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
                       <span>{trend.percentage.toFixed(1)}%</span>
@@ -217,7 +220,7 @@ function WeightTrackingPage() {
                {history.map((entry, index) => {
                   const changeInfo = getChangeFromPrevious(index, history);
                   return (
-                    <div key={entry.id} className="group flex items-center justify-between p-3 rounded-lg bg-card border border-transparent hover:border-steel-700 hover:bg-card-elevated transition-all">
+                    <div key={entry.id} data-testid="weight-entry" data-entry-id={entry.id.toString()} className="group flex items-center justify-between p-3 rounded-lg bg-card border border-transparent hover:border-steel-700 hover:bg-card-elevated transition-all">
                        <div className="flex items-center gap-4">
                          <span className="text-xs font-bold text-steel-500 w-12">
                            {new Date(entry.recordedAt).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}
