@@ -122,6 +122,9 @@ jobs:
             echo "env_tag=staging" >> $GITHUB_OUTPUT
             echo "node_env=production" >> $GITHUB_OUTPUT
           fi
+      - name: Normalize image name
+        id: image-name
+        run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -134,7 +137,7 @@ jobs:
           build-args: |
             NODE_ENV=${{ steps.env-tags.outputs.node_env }}
           tags: |
-            ${{ github.ref == 'refs/heads/main' && format('ghcr.io/{0}:latest', github.repository) || '' }}
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
-            ghcr.io/${{ github.repository }}:${{ steps.env-tags.outputs.branch_tag }}
-            ghcr.io/${{ github.repository }}:${{ steps.env-tags.outputs.env_tag }}
+            ${{ github.ref == 'refs/heads/main' && format('ghcr.io/{0}:latest', steps.image-name.outputs.repo) || '' }}
+            ghcr.io/${{ steps.image-name.outputs.repo }}:${{ github.sha }}
+            ghcr.io/${{ steps.image-name.outputs.repo }}:${{ steps.env-tags.outputs.branch_tag }}
+            ghcr.io/${{ steps.image-name.outputs.repo }}:${{ steps.env-tags.outputs.env_tag }}
