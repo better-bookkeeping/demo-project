@@ -721,7 +721,7 @@ const DateTimePicker = React.forwardRef<
           >
             <CalendarIcon className="mr-2 h-4 w-4 text-primary flex-shrink-0" />
             {displayedDate ? (
-              <span className="text-white truncate text-base font-bold">{displayedDate}</span>
+              <span className="text-white truncate text-base">{displayedDate}</span>
             ) : (
               <span className="text-base">{placeholder}</span>
             )}
