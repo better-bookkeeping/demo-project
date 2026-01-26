@@ -5,6 +5,9 @@ import viteTsConfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
 
+const APP_ENVIRONMENT = process.env.VITE_ENVIRONMENT || process.env.ENVIRONMENT || process.env.NODE_ENV;
+const isDevEnvironment = APP_ENVIRONMENT === "development" || APP_ENVIRONMENT === "test";
+
 const config = defineConfig({
   plugins: [
     viteTsConfigPaths({
@@ -27,7 +30,7 @@ const config = defineConfig({
     viteReact(),
   ],
   build: {
-    sourcemap: process.env.ENVIRONMENT === "development" || process.env.ENVIRONMENT === "test",
+    sourcemap: isDevEnvironment,
   },
   server: {
     allowedHosts: ["onboarding.abacus.local"],
