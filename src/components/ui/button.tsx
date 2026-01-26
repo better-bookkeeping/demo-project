@@ -39,9 +39,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 export const buttonVariants = ({ variant = "default", size = "default", className }: { variant?: ButtonVariant; size?: ButtonSize; className?: string }) => cn(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm font-heading font-bold uppercase tracking-wider transition-all duration-200",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm font-heading font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-page-bg",
-  "disabled:pointer-events-none disabled:opacity-50",
+  "disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed",
   "[&>svg]:pointer-events-none [&>svg]:shrink-0",
   variantStyles[variant],
   sizeStyles[size],
