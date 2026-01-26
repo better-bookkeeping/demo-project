@@ -10,16 +10,18 @@ export class RateLimitError extends Error {
 }
 
 export function checkRateLimit(maxAttempts = 5, windowMs = 15 * 60 * 1000): void {
-  if (process.env.NODE_ENV === "test") {
+  const appEnvironment = process.env.VITE_ENVIRONMENT || process.env.ENVIRONMENT || process.env.NODE_ENV || "development";
+  if (appEnvironment !== "production") {
     return;
   }
 
   const request = getRequest();
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim()
     || request.headers.get("x-real-ip")
+    || request.headers.get("cf-connecting-ip")
     || "unknown";
 
-  if (ip === "unknown" || ip === "::1" || ip === "localhost") {
+  if (ip === "::1" || ip === "localhost") {
     return;
   }
 
@@ -28,6 +30,7 @@ export function checkRateLimit(maxAttempts = 5, windowMs = 15 * 60 * 1000): void
 
   const entry = attempts.get(key);
   if (!entry || now > entry.resetAt) {
+    if (entry) attempts.delete(key);
     attempts.set(key, { count: 1, resetAt: now + windowMs });
     return;
   }
