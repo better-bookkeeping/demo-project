@@ -1,4 +1,4 @@
-import { test, expect, waitForHydration, WAIT } from "./fixtures/auth";
+import { test, expect, waitForHydration } from "./fixtures/auth";
 import type { Page } from "@playwright/test";
 
 async function logWeight(page: Page, weight: string): Promise<void> {
@@ -11,7 +11,7 @@ async function logWeight(page: Page, weight: string): Promise<void> {
   const logButton = page.getByRole("button", { name: /log weight/i });
   await expect(logButton).toBeEnabled({ timeout: 3000 });
   await logButton.click();
-  await page.waitForTimeout(WAIT.MEDIUM);
+  await expect(page.getByText(weight).first()).toBeVisible({ timeout: 5000 });
 }
 
 test.describe("Weight Tracking", () => {
@@ -22,10 +22,8 @@ test.describe("Weight Tracking", () => {
   test.afterEach(async ({ page }) => {
     try {
       await page.keyboard.press("Escape");
-      await page.waitForTimeout(WAIT.SHORT);
-    } catch {
-      // Cleanup errors are acceptable
-    }
+      await page.waitForTimeout(100);
+    } catch {}
   });
 
   test.describe("page load", () => {
@@ -54,7 +52,7 @@ test.describe("Weight Tracking", () => {
       const testWeight = "175.5";
       await logWeight(page, testWeight);
 
-      await expect(page.getByText(testWeight).first()).toBeVisible();
+      await expect(page.getByText(/175\.5/).first()).toBeVisible({ timeout: 5000 });
     });
 
     test("should clear input after logging weight", async ({ page }) => {
@@ -72,7 +70,7 @@ test.describe("Weight Tracking", () => {
       const newWeight = "185.0";
       await logWeight(page, newWeight);
 
-      await expect(page.locator("text=185").first()).toBeVisible();
+      await expect(page.getByText(/185/).first()).toBeVisible();
     });
   });
 
@@ -98,13 +96,9 @@ test.describe("Weight Tracking", () => {
 
       await logWeight(page, "170");
       await logWeight(page, "172");
+      await logWeight(page, "174");
 
-      const trendIndicator = page.locator('[class*="from last"]');
-      const hasTrend = await trendIndicator.isVisible({ timeout: 2000 }).catch(() => false);
-
-      if (hasTrend) {
-        await expect(trendIndicator).toBeVisible();
-      }
+      await expect(page.getByTestId("trend-indicator")).toBeVisible({ timeout: 3000 });
     });
   });
 
@@ -114,16 +108,15 @@ test.describe("Weight Tracking", () => {
       await waitForHydration(page);
 
       await logWeight(page, "999");
-      await expect(page.getByText("999").first()).toBeVisible();
 
-      const entryRow = page.locator('[class*="group"]').filter({ hasText: "999" });
-      await entryRow.hover();
+      const entryRow = page.getByTestId("weight-entry").filter({ hasText: "999" });
+      await expect(entryRow.first()).toBeVisible({ timeout: 5000 });
+      await entryRow.first().hover();
 
-      const deleteButton = entryRow.getByRole("button");
+      const deleteButton = entryRow.first().getByRole("button");
       await deleteButton.click();
 
-      await page.waitForTimeout(WAIT.MEDIUM);
-      await expect(page.getByText("999")).not.toBeVisible();
+      await expect(entryRow).not.toBeVisible({ timeout: 3000 });
     });
   });
 
@@ -133,17 +126,12 @@ test.describe("Weight Tracking", () => {
       await waitForHydration(page);
 
       await logWeight(page, "165");
+      await logWeight(page, "170");
+      await logWeight(page, "175");
 
-      const hasStats = await page
-        .getByText(/lowest/i)
-        .isVisible({ timeout: 2000 })
-        .catch(() => false);
-
-      if (hasStats) {
-        await expect(page.getByText(/lowest/i)).toBeVisible();
-        await expect(page.getByText(/average/i)).toBeVisible();
-        await expect(page.getByText(/highest/i)).toBeVisible();
-      }
+      await expect(page.getByText(/lowest/i)).toBeVisible({ timeout: 3000 });
+      await expect(page.getByText(/average/i)).toBeVisible();
+      await expect(page.getByText(/highest/i)).toBeVisible();
     });
   });
 

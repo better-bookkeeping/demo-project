@@ -1,15 +1,17 @@
-import { test, expect, waitForHydration, fillWithRetry, WAIT } from "./fixtures/auth";
+import { test, expect, waitForHydration, fillWithRetry } from "./fixtures/auth";
 import type { Page } from "@playwright/test";
 
 async function logSet(page: Page, movement: string, weight: string, reps: string) {
   await page.getByRole("combobox").click();
-  await page.waitForTimeout(WAIT.SHORT);
-  await page.getByRole("option", { name: movement }).click();
-  await page.waitForTimeout(WAIT.SHORT);
-  await page.locator('input[placeholder="0"]').first().fill(weight);
-  await page.locator('input[placeholder="0"]').last().fill(reps);
+  await page.getByRole("option", { name: movement }).first().click();
+
+  const weightInput = page.getByTestId("weight-input");
+  const repsInput = page.getByTestId("reps-input");
+  await weightInput.fill(weight);
+  await repsInput.fill(reps);
+
   await page.getByRole("button", { name: /log set/i }).click();
-  await page.waitForTimeout(WAIT.MEDIUM);
+  await expect(page.getByTestId("set-item").first()).toBeVisible({ timeout: 5000 });
 }
 
 async function finishWorkout(page: Page) {
@@ -29,8 +31,6 @@ async function finishWorkout(page: Page) {
 }
 
 test.describe("Sets", () => {
-  test.describe.configure({ mode: "serial" });
-
   test.beforeEach(async ({ auth, page }) => {
     await auth.signIn();
     await page.goto("/current-workout");
@@ -62,7 +62,6 @@ test.describe("Sets", () => {
       }
 
       await page.keyboard.press("Escape");
-      await page.waitForTimeout(100);
 
       const finishButton = page.getByTestId("finish-workout-button");
       const startButton = page.getByTestId("start-workout-button");
@@ -96,15 +95,13 @@ test.describe("Sets", () => {
       await expect(logSetButton).toBeDisabled();
 
       await page.getByRole("combobox").click();
-      await page.waitForTimeout(WAIT.SHORT);
       await page.getByRole("option", { name: "Deadlift" }).click();
-      await page.waitForTimeout(WAIT.SHORT);
       await expect(logSetButton).toBeDisabled();
 
-      await page.locator('input[placeholder="0"]').first().fill("315");
+      await page.getByTestId("weight-input").fill("315");
       await expect(logSetButton).toBeDisabled();
 
-      await page.locator('input[placeholder="0"]').last().fill("3");
+      await page.getByTestId("reps-input").fill("3");
       await expect(logSetButton).toBeEnabled();
     });
 
@@ -123,14 +120,13 @@ test.describe("Sets", () => {
 
       await fillWithRetry(page.getByRole("spinbutton"), "180");
       await page.getByRole("button", { name: /log weight/i }).click();
-      await page.waitForTimeout(WAIT.LONG);
+      await expect(page.getByPlaceholder("0.0")).toHaveValue("");
 
       await page.goto("/current-workout");
       await waitForHydration(page);
 
       await page.getByRole("combobox").click();
-      await page.waitForTimeout(WAIT.SHORT);
-      const pullUpOption = page.getByRole("option").filter({ hasText: "Pull Up" });
+      const pullUpOption = page.getByRole("option").filter({ hasText: "Pull Up" }).first();
       await pullUpOption.click();
 
       const weightInput = page.getByTestId("weight-input");
@@ -142,10 +138,7 @@ test.describe("Sets", () => {
     test("should display sets with movement name, weight, and reps", async ({ page }) => {
       await logSet(page, "Bench Press", "185", "6");
 
-      await expect(page.getByTestId("set-item").first()).toBeVisible({ timeout: 5000 });
-      await page.waitForTimeout(WAIT.LONG);
-
-      await expect(page.getByRole("heading", { name: "Bench Press" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Bench Press" })).toBeVisible({ timeout: 5000 });
 
       const setRow = page.getByTestId("set-item").first();
       await expect(setRow.getByTestId("set-weight")).toContainText("185");
@@ -156,29 +149,26 @@ test.describe("Sets", () => {
 
     test("should show sets in the order they were added", async ({ page }) => {
       await page.getByRole("combobox").click();
-      await page.waitForTimeout(WAIT.SHORT);
       await page.getByRole("option", { name: "Squat" }).click();
-      await page.waitForTimeout(WAIT.SHORT);
 
       const logSetButton = page.getByRole("button", { name: /log set/i });
 
-      await page.locator('input[placeholder="0"]').first().fill("135");
-      await page.locator('input[placeholder="0"]').last().fill("10");
+      await page.getByTestId("weight-input").fill("135");
+      await page.getByTestId("reps-input").fill("10");
       await expect(logSetButton).toBeEnabled();
       await logSetButton.click();
-      await page.waitForTimeout(WAIT.SHORT);
 
-      await page.locator('input[placeholder="0"]').first().fill("185");
-      await page.locator('input[placeholder="0"]').last().fill("8");
+      await page.getByTestId("weight-input").fill("185");
+      await page.getByTestId("reps-input").fill("8");
       await expect(logSetButton).toBeEnabled();
       await logSetButton.click();
-      await page.waitForTimeout(WAIT.SHORT);
 
-      await page.locator('input[placeholder="0"]').first().fill("225");
-      await page.locator('input[placeholder="0"]').last().fill("5");
+      await page.getByTestId("weight-input").fill("225");
+      await page.getByTestId("reps-input").fill("5");
       await expect(logSetButton).toBeEnabled();
       await logSetButton.click();
-      await page.waitForTimeout(WAIT.MEDIUM);
+
+      await expect(page.getByTestId("set-item").nth(2)).toBeVisible({ timeout: 5000 });
 
       const setNumbers = page.getByTestId("set-index");
       const numbers = await setNumbers.allTextContents();
@@ -188,8 +178,6 @@ test.describe("Sets", () => {
     });
 
     test("should group sets by movement", async ({ page }) => {
-      const logSetButton = page.getByRole("button", { name: /log set/i });
-
       await logSet(page, "Bench Press", "135", "10");
       await logSet(page, "Squat", "185", "8");
       await logSet(page, "Bench Press", "155", "8");
@@ -209,39 +197,32 @@ test.describe("Sets", () => {
       await expect(setRow.getByTestId("set-weight")).toContainText("315");
 
       await setRow.getByTestId("delete-set-button").click({ force: true });
-      await page.waitForTimeout(WAIT.SHORT);
 
-      await expect(page.getByTestId("set-item").filter({ hasText: "315" })).not.toBeVisible();
+      await expect(page.getByTestId("set-item").filter({ hasText: "315" })).not.toBeVisible({ timeout: 3000 });
     });
 
     test("should update the sets list after deletion", async ({ page }) => {
       await page.getByRole("combobox").click();
-      await page.waitForTimeout(WAIT.SHORT);
-      await page.getByRole("option", { name: "Squat" }).click();
-      await page.waitForTimeout(WAIT.SHORT);
+      await page.getByRole("option", { name: "Squat" }).first().click();
 
       const logSetButton = page.getByRole("button", { name: /log set/i });
 
-      await page.locator('input[placeholder="0"]').first().fill("135");
-      await page.locator('input[placeholder="0"]').last().fill("10");
+      await page.getByTestId("weight-input").fill("135");
+      await page.getByTestId("reps-input").fill("10");
       await expect(logSetButton).toBeEnabled();
       await logSetButton.click();
-      await page.waitForTimeout(WAIT.SHORT);
 
-      await page.locator('input[placeholder="0"]').first().fill("185");
-      await page.locator('input[placeholder="0"]').last().fill("8");
+      await page.getByTestId("weight-input").fill("185");
+      await page.getByTestId("reps-input").fill("8");
       await expect(logSetButton).toBeEnabled();
       await logSetButton.click();
-      await page.waitForTimeout(WAIT.MEDIUM);
 
-      const setsLabel = page.locator("span").filter({ hasText: /2 SETS/i });
-      await expect(setsLabel).toBeVisible();
+      await expect(page.locator("span").filter({ hasText: /2 SETS/i })).toBeVisible({ timeout: 5000 });
 
       const firstSetRow = page.getByTestId("set-item").first();
       await firstSetRow.getByTestId("delete-set-button").click({ force: true });
-      await page.waitForTimeout(WAIT.MEDIUM);
 
-      await expect(page.locator("span").filter({ hasText: /1 SETS/i })).toBeVisible();
+      await expect(page.locator("span").filter({ hasText: /1 SETS/i })).toBeVisible({ timeout: 3000 });
     });
 
     test("should update total volume after deletion", async ({ page }) => {
@@ -251,9 +232,8 @@ test.describe("Sets", () => {
 
       const setRow = page.getByTestId("set-item").first();
       await setRow.getByTestId("delete-set-button").click({ force: true });
-      await page.waitForTimeout(WAIT.SHORT);
 
-      await expect(page.getByText(/0\.0k/i)).toBeVisible();
+      await expect(page.getByText(/0\.0k/i)).toBeVisible({ timeout: 3000 });
     });
   });
 
@@ -261,12 +241,11 @@ test.describe("Sets", () => {
     test("should show PR badge when setting a new personal record with higher weight", async ({ page }) => {
       await logSet(page, "Lat Pulldown", "100", "10");
       await page.getByTestId("finish-workout-button").click();
-      await page.waitForTimeout(WAIT.LONG);
+      await page.getByTestId("start-workout-button").waitFor({ state: "visible", timeout: 10000 });
 
       await page.goto("/current-workout");
       await waitForHydration(page);
 
-      await page.getByTestId("start-workout-button").waitFor({ state: "visible", timeout: 10000 });
       await page.getByTestId("start-workout-button").click();
       await logSet(page, "Lat Pulldown", "120", "10");
 
@@ -277,12 +256,11 @@ test.describe("Sets", () => {
     test("should show PR badge when setting new record with same weight but more reps", async ({ page }) => {
       await logSet(page, "Seated Row", "120", "8");
       await page.getByTestId("finish-workout-button").click();
-      await page.waitForTimeout(WAIT.LONG);
+      await page.getByTestId("start-workout-button").waitFor({ state: "visible", timeout: 10000 });
 
       await page.goto("/current-workout");
       await waitForHydration(page);
 
-      await page.getByTestId("start-workout-button").waitFor({ state: "visible", timeout: 10000 });
       await page.getByTestId("start-workout-button").click();
       await logSet(page, "Seated Row", "120", "12");
 
@@ -293,12 +271,11 @@ test.describe("Sets", () => {
     test("should NOT show PR when weight is lower even with more reps", async ({ page }) => {
       await logSet(page, "Tricep Extension", "50", "10");
       await page.getByTestId("finish-workout-button").click();
-      await page.waitForTimeout(WAIT.LONG);
+      await page.getByTestId("start-workout-button").waitFor({ state: "visible", timeout: 10000 });
 
       await page.goto("/current-workout");
       await waitForHydration(page);
 
-      await page.getByTestId("start-workout-button").waitFor({ state: "visible", timeout: 10000 });
       await page.getByTestId("start-workout-button").click();
       await logSet(page, "Tricep Extension", "40", "15");
 
@@ -309,12 +286,11 @@ test.describe("Sets", () => {
     test("should NOT show PR when same weight and fewer reps", async ({ page }) => {
       await logSet(page, "Dumbbell Curl", "35", "12");
       await page.getByTestId("finish-workout-button").click();
-      await page.waitForTimeout(WAIT.LONG);
+      await page.getByTestId("start-workout-button").waitFor({ state: "visible", timeout: 10000 });
 
       await page.goto("/current-workout");
       await waitForHydration(page);
 
-      await page.getByTestId("start-workout-button").waitFor({ state: "visible", timeout: 10000 });
       await page.getByTestId("start-workout-button").click();
       await logSet(page, "Dumbbell Curl", "35", "10");
 
@@ -352,12 +328,11 @@ test.describe("Sets", () => {
     test("should show trophy icon next to movement group with PR", async ({ page }) => {
       await logSet(page, "Leg Press", "300", "10");
       await page.getByTestId("finish-workout-button").click();
-      await page.waitForTimeout(WAIT.LONG);
+      await page.getByTestId("start-workout-button").waitFor({ state: "visible", timeout: 10000 });
 
       await page.goto("/current-workout");
       await waitForHydration(page);
 
-      await page.getByTestId("start-workout-button").waitFor({ state: "visible", timeout: 10000 });
       await page.getByTestId("start-workout-button").click();
       await logSet(page, "Leg Press", "350", "10");
 
@@ -371,7 +346,7 @@ test.describe("Sets", () => {
     test("should show (BW) indicator in movement dropdown for body-weight movements", async ({ page }) => {
       await page.getByRole("combobox").click();
 
-      const pullUpOption = page.getByRole("option").filter({ hasText: "Pull Up" });
+      const pullUpOption = page.getByRole("option").filter({ hasText: "Pull Up" }).first();
       await expect(pullUpOption.getByText("(BW)")).toBeVisible();
     });
   });
