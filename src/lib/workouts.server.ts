@@ -75,6 +75,12 @@ export const addSetServerFn = createServerFn({ method: "POST" })
       if (!workout) {
         return { success: false, error: "No active workout" };
       }
+      const movement = await prisma.movement.findFirst({
+        where: { id: data.movementId, userId: context.user.id },
+      });
+      if (!movement) {
+        return { success: false, error: "Movement not found" };
+      }
       const set = await prisma.set.create({
         data: {
           workoutId: workout.id,
