@@ -14,6 +14,15 @@ const config = defineConfig({
     tanstackStart(),
     nitro({
       preset: "node-server",
+      routeRules: {
+        "/**": {
+          headers: {
+            "X-Frame-Options": "DENY",
+            "X-Content-Type-Options": "nosniff",
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+          }
+        }
+      }
     }),
     viteReact(),
   ],

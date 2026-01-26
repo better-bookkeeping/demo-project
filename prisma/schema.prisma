@@ -59,6 +59,8 @@ model Workout {
   id          String    @id @default(uuid())
   completedAt DateTime?
   sets        Set[]
+
+  @@index([userId, completedAt])
 }
 
 model Set {
@@ -69,6 +71,9 @@ model Set {
   movement   Movement @relation(fields: [movementId], references: [id])
   reps       Int
   weight     Float
+
+  @@index([workoutId])
+  @@index([movementId])
 }
 
 model Nutrition {
@@ -112,4 +117,5 @@ model Food {
 
   @@index([name])
   @@index([category])
+  @@index([isCustom, userId])
 }

@@ -5,6 +5,8 @@ import { getCookie, setCookie, deleteCookie } from "@tanstack/react-start/server
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { sessionCookieName } from "./auth.consts";
 import { getServerSidePrismaClient } from "./db.server";
+import { checkRateLimit } from "./rate-limiter";
+import { passwordSchema } from "./password-validation";
 import { z } from "zod";
 
 // Environment variables - set via .env.local or Docker env_file
@@ -37,7 +39,7 @@ function verifySessionToken(token: string): string | null {
  */
 function setSessionCookie(userId: string) {
   const token = signUserId(userId);
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
   setCookie(sessionCookieName, token, {
     httpOnly: true,
@@ -76,6 +78,7 @@ export const getUserServerFn = createServerFn().handler(async () => {
 export const signInServerFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ email: z.string().email(), password: z.string() }))
   .handler(async ({ data }: { data: { email: string; password: string } }) => {
+    checkRateLimit();
     const { email, password } = data;
 
     const prisma = await getServerSidePrismaClient();
@@ -101,8 +104,9 @@ export const signInServerFn = createServerFn({ method: "POST" })
  * Creates a new user account
  */
 export const createAccountServerFn = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ email: z.email(), name: z.string().min(1), password: z.string().min(6) }))
+  .inputValidator(z.object({ email: z.email(), name: z.string().min(1), password: passwordSchema }))
   .handler(async ({ data }: { data: { email: string; name: string; password: string } }) => {
+    checkRateLimit();
     const { email, name, password } = data;
 
     const prisma = await getServerSidePrismaClient();
@@ -139,7 +143,7 @@ export const logoutServerFn = createServerFn({ method: "POST" }).handler(async (
  * This is a simplified version that returns the user without setting session cookie
  */
 export const createTestAccountServerFn = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ email: z.string().email(), name: z.string().min(1), password: z.string().min(6) }))
+  .inputValidator(z.object({ email: z.string().email(), name: z.string().min(1), password: passwordSchema }))
   .handler(async ({ data }: { data: { email: string; name: string; password: string } }) => {
     const { email, name, password } = data;
 

@@ -35,7 +35,15 @@ function CreateAccountPage() {
         setError(result.error || "Account creation failed");
       }
     } catch (error) {
-      setError("An unexpected error occurred");
+      const message = error && typeof error === "object" && "message" in error
+        ? (error as { message: string }).message
+        : "An unexpected error occurred";
+
+      setError(
+        message.includes("Password") || message.includes("must contain")
+          ? "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character"
+          : message
+      );
     } finally {
       setIsLoading(false);
     }
@@ -93,10 +101,10 @@ function CreateAccountPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
                 autoComplete="new-password"
               />
-              <p className="text-xs text-steel-500">Must be at least 6 characters</p>
+              <p className="text-xs text-steel-500">Password must be at least 8 characters with uppercase, lowercase, number, and special character</p>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create account"}
