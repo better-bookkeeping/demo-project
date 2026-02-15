@@ -12,7 +12,7 @@ const getAllUsersServerFn = createServerFn().handler(async () => {
   if (configService.getAppConfig().environment === "production") throw new Error("Forbidden!");
   const prisma = await getServerSidePrismaClient();
   return prisma.user.findMany({
-    select: { id: true, email: true, name: true, createdAt: true, password: true },
+    select: { id: true, email: true, name: true, createdAt: true },
   });
 });
 
