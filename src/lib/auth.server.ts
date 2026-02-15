@@ -2,12 +2,44 @@ import crypto from "node:crypto";
 import { redirect } from "@tanstack/react-router";
 import { getCookie, setCookie, deleteCookie } from "@tanstack/react-start/server";
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
+import bcrypt from "bcryptjs";
 import { sessionCookieName } from "./auth.consts";
 import { getServerSidePrismaClient } from "./db.server";
 import { z } from "zod";
 
 // In production, use a proper secret from environment variables
 const COOKIE_SECRET = process.env.COOKIE_SECRET || "dev-secret-change-in-production";
+
+const BCRYPT_SALT_ROUNDS = 12;
+
+function isBcryptHash(value: string): boolean {
+  return /^\$2[aby]?\$/.test(value);
+}
+
+/**
+ * Verifies a password against a stored hash (or legacy plaintext).
+ * If the stored password is legacy plaintext, it rehashes and updates the DB.
+ * Returns true if the password matches.
+ */
+async function verifyAndMigratePassword(
+  userId: string,
+  storedPassword: string,
+  inputPassword: string,
+): Promise<boolean> {
+  if (isBcryptHash(storedPassword)) {
+    return bcrypt.compare(inputPassword, storedPassword);
+  }
+
+  // Legacy migration: plaintext passwords are rehashed on successful login.
+  // In production, this would typically be paired with a one-time bulk migration.
+  if (storedPassword !== inputPassword) return false;
+
+  const prisma = await getServerSidePrismaClient();
+  const hashedPassword = await bcrypt.hash(inputPassword, BCRYPT_SALT_ROUNDS);
+  await prisma.user.update({ where: { id: userId }, data: { password: hashedPassword } });
+
+  return true;
+}
 
 /**
  * Signs a user ID to create a tamper-proof session token
@@ -81,7 +113,12 @@ export const signInServerFn = createServerFn({ method: "POST" })
       where: { email },
     });
 
-    if (!user || user.password !== password) {
+    if (!user) {
+      return { success: false as const, error: "Invalid email or password" };
+    }
+
+    const isValid = await verifyAndMigratePassword(user.id, user.password, password);
+    if (!isValid) {
       return { success: false as const, error: "Invalid email or password" };
     }
 
@@ -108,8 +145,10 @@ export const createAccountServerFn = createServerFn({ method: "POST" })
       return { success: false as const, error: "An account with this email already exists" };
     }
 
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+
     const user = await prisma.user.create({
-      data: { email, name, password },
+      data: { email, name, password: hashedPassword },
     });
 
     setSessionCookie(user.id);
