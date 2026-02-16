@@ -34,9 +34,13 @@ function CreateAccountPage() {
       } else {
         setError(result.error || "Account creation failed");
       }
-    } catch (error) {
-      console.error("Error creating account", error);
-      setError("An unexpected error occurred");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("Too many attempts")) {
+        setError(message);
+      } else {
+        setError("An unexpected error occurred");
+      }
     } finally {
       setIsLoading(false);
     }
