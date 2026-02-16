@@ -6,7 +6,7 @@ export const Route = createFileRoute("/__index/_layout")({
   component: RouteComponent,
   beforeLoad: ({ context }) => {
     if (!context.user) throw redirect({ to: "/sign-in" });
-    return { user: context.user! };
+    return { user: context.user };
   },
 });
 
