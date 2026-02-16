@@ -23,10 +23,7 @@ function maybeCleanStore() {
 
 export function rateLimitMiddleware(opts: { maxAttempts: number; windowMs: number }) {
   return createMiddleware({ type: "function" }).server(async ({ next }) => {
-    const ip = getRequestIP({ xForwardedFor: true });
-    if (!ip) {
-      throw new Error("Unable to determine client IP address");
-    }
+    const ip = getRequestIP({ xForwardedFor: true }) ?? "127.0.0.1";
     const now = Date.now();
 
     maybeCleanStore();
