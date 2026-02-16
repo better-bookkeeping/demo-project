@@ -23,6 +23,11 @@ function maybeCleanStore() {
 
 export function rateLimitMiddleware(opts: { maxAttempts: number; windowMs: number }) {
   return createMiddleware({ type: "function" }).server(async ({ next }) => {
+    // In production, this should be behind a trusted reverse proxy that sets
+    // X-Forwarded-For. Without one (local dev, Docker), getRequestIP returns null.
+    // We fall back to a shared bucket rather than rejecting — acceptable for dev.
+    // Production hardening: validate X-Forwarded-For against a trusted proxy list,
+    // and use a distributed store (e.g. Redis) instead of in-memory for multi-server.
     const ip = getRequestIP({ xForwardedFor: true }) ?? "127.0.0.1";
     const now = Date.now();
 
