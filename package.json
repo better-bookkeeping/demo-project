@@ -11,8 +11,8 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "generate": "prisma generate",
-    "test": "playwright test",
-    "test:ui": "playwright test --ui"
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.9.0",
@@ -63,6 +63,9 @@
     "vite": "^7.3.1",
     "vitest": "^4.0.17",
     "web-vitals": "^5.1.0"
+  },
+  "prisma": {
+    "seed": "bun run prisma/seed.ts"
   },
   "trustedDependencies": [
     "@better-bookkeeping/db",
