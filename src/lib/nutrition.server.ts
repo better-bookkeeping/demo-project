@@ -36,14 +36,28 @@ export const addNutritionLogServerFn = createServerFn({ method: "POST" })
     },
   );
 
+const timeRangeSchema = z.enum(["1W", "1M", "3M", "6M", "1Y", "All"]).optional();
+
 export const getNutritionHistoryServerFn = createServerFn()
   .middleware([authMiddleware])
-  .handler(async ({ context }) => {
+  .inputValidator(z.object({ range: timeRangeSchema }).optional())
+  .handler(async ({ context, data }) => {
     const prisma = await getServerSidePrismaClient();
-    return prisma.nutritionLog.findMany({
-      where: { userId: context.user.id },
+    const range = data?.range;
+    let loggedAtFilter: { gte: Date } | undefined;
+    if (range && range !== "All") {
+      const days: Record<string, number> = { "1W": 7, "1M": 30, "3M": 90, "6M": 180, "1Y": 365 };
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days[range]);
+      loggedAtFilter = { gte: cutoff };
+    }
+    console.log(`[nutrition-history] range=${range ?? "All"} cutoff=${loggedAtFilter?.gte?.toISOString() ?? "none"}`);
+    const results = await prisma.nutritionLog.findMany({
+      where: { userId: context.user.id, ...(loggedAtFilter && { loggedAt: loggedAtFilter }) },
       orderBy: { loggedAt: "desc" },
     });
+    console.log(`[nutrition-history] returned ${results.length} rows`);
+    return results;
   });
 
 export const getDailyNutritionSummaryServerFn = createServerFn()

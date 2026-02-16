@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,9 +6,9 @@ import { Select } from "@/components/ui/select";
 import { deleteWorkoutsServerFn } from "@/lib/workouts.server";
 import { Trash2 } from "lucide-react";
 import { workoutHistoryQueryOptions } from "./-queries/workout-history";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { ChartRangeFilter, useChartRangeFilter } from "@/components/chart-range-filter";
+import { ChartRangeFilter, type TimeRange } from "@/components/chart-range-filter";
 
 type Metric = "max-weight" | "total-reps" | "total-volume";
 
@@ -27,7 +27,8 @@ export const Route = createFileRoute("/__index/_layout/workout-history/")({
 
 function WorkoutHistoryPage() {
   const queryClient = useQueryClient();
-  const { data: workouts } = useSuspenseQuery(workoutHistoryQueryOptions());
+  const [range, setRange] = useState<TimeRange>("All");
+  const { data: workouts = [] } = useQuery(workoutHistoryQueryOptions(range));
   const [selectedWorkouts, setSelectedWorkouts] = useState<Set<string>>(new Set());
   const [selectedMovement, setSelectedMovement] = useState("");
   const [selectedMetric, setSelectedMetric] = useState<Metric>("max-weight");
@@ -35,7 +36,7 @@ function WorkoutHistoryPage() {
   const deleteWorkoutsMutation = useMutation({
     mutationFn: (workoutIds: string[]) => deleteWorkoutsServerFn({ data: { workoutIds } }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: workoutHistoryQueryOptions().queryKey });
+      queryClient.invalidateQueries({ queryKey: ["workout-history"] });
       setSelectedWorkouts(new Set());
     },
   });
@@ -69,16 +70,13 @@ function WorkoutHistoryPage() {
       .reverse(); // chronological order
   }, [workouts, selectedMovement, selectedMetric]);
 
-  const getCompletedAt = useCallback((entry: { completedAt: string }) => entry.completedAt, []);
-  const { range, setRange, filteredData } = useChartRangeFilter(progressionData, getCompletedAt, "All");
-
   const chartData = useMemo(
     () =>
-      filteredData.map((entry) => ({
+      progressionData.map((entry) => ({
         timestamp: new Date(entry.completedAt).getTime(),
         value: entry.value,
       })),
-    [filteredData],
+    [progressionData],
   );
 
   const metricLabel = METRIC_OPTIONS.find((m) => m.value === selectedMetric)?.label ?? "";

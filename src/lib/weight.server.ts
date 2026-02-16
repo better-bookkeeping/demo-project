@@ -18,14 +18,28 @@ export const addWeightServerFn = createServerFn({ method: "POST" })
     return { success: true as const, entry };
   });
 
+const timeRangeSchema = z.enum(["1W", "1M", "3M", "6M", "1Y", "All"]).optional();
+
 export const getWeightHistoryServerFn = createServerFn()
   .middleware([authMiddleware])
-  .handler(async ({ context }) => {
+  .inputValidator(z.object({ range: timeRangeSchema }).optional())
+  .handler(async ({ context, data }) => {
     const prisma = await getServerSidePrismaClient();
-    return prisma.userWeight.findMany({
-      where: { userId: context.user.id },
+    const range = data?.range;
+    let recordedAtFilter: { gte: Date } | undefined;
+    if (range && range !== "All") {
+      const days: Record<string, number> = { "1W": 7, "1M": 30, "3M": 90, "6M": 180, "1Y": 365 };
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days[range]);
+      recordedAtFilter = { gte: cutoff };
+    }
+    console.log(`[weight-history] range=${range ?? "All"} cutoff=${recordedAtFilter?.gte?.toISOString() ?? "none"}`);
+    const results = await prisma.userWeight.findMany({
+      where: { userId: context.user.id, ...(recordedAtFilter && { recordedAt: recordedAtFilter }) },
       orderBy: { recordedAt: "desc" },
     });
+    console.log(`[weight-history] returned ${results.length} rows`);
+    return results;
   });
 
 export const getLatestWeightServerFn = createServerFn()

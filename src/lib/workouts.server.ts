@@ -105,12 +105,24 @@ export const deleteSetServerFn = createServerFn({ method: "POST" })
     return { success: true };
   });
 
+const timeRangeSchema = z.enum(["1W", "1M", "3M", "6M", "1Y", "All"]).optional();
+
 export const getWorkoutHistoryServerFn = createServerFn()
   .middleware([authMiddleware])
-  .handler(async ({ context }) => {
+  .inputValidator(z.object({ range: timeRangeSchema }).optional())
+  .handler(async ({ context, data }) => {
     const prisma = await getServerSidePrismaClient();
+    const range = data?.range;
+    let completedAtFilter: { not: null; gte?: Date } = { not: null };
+    if (range && range !== "All") {
+      const days: Record<string, number> = { "1W": 7, "1M": 30, "3M": 90, "6M": 180, "1Y": 365 };
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days[range]);
+      completedAtFilter = { not: null, gte: cutoff };
+    }
+    console.log(`[workout-history] range=${range ?? "All"} cutoff=${completedAtFilter.gte?.toISOString() ?? "none"}`);
     const workouts = await prisma.workout.findMany({
-      where: { userId: context.user.id, completedAt: { not: null } },
+      where: { userId: context.user.id, completedAt: completedAtFilter },
       orderBy: { completedAt: "desc" },
       include: {
         sets: {
@@ -118,6 +130,7 @@ export const getWorkoutHistoryServerFn = createServerFn()
         },
       },
     });
+    console.log(`[workout-history] returned ${workouts.length} rows`);
     return workouts;
   });
 

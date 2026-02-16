@@ -1,13 +1,13 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { addWeightServerFn } from "@/lib/weight.server";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { weightHistoryQueryOptions } from "./-queries/weight";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { ChartRangeFilter, useChartRangeFilter } from "@/components/chart-range-filter";
+import { ChartRangeFilter, type TimeRange } from "@/components/chart-range-filter";
 
 export const Route = createFileRoute("/__index/_layout/weight/")({
   loader: async ({ context }) => {
@@ -18,13 +18,14 @@ export const Route = createFileRoute("/__index/_layout/weight/")({
 
 function WeightPage() {
   const queryClient = useQueryClient();
-  const { data: weightHistory } = useSuspenseQuery(weightHistoryQueryOptions());
+  const [range, setRange] = useState<TimeRange>("1W");
+  const { data: weightHistory = [] } = useQuery(weightHistoryQueryOptions(range));
   const [weight, setWeight] = useState("");
 
   const addWeightMutation = useMutation({
     mutationFn: (weight: number) => addWeightServerFn({ data: { weight } }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: weightHistoryQueryOptions().queryKey });
+      queryClient.invalidateQueries({ queryKey: ["weight-history"] });
       setWeight("");
     },
   });
@@ -38,16 +39,13 @@ function WeightPage() {
 
   const latestWeight = weightHistory[0];
 
-  const getRecordedAt = useCallback((entry: (typeof weightHistory)[number]) => entry.recordedAt, []);
-  const { range, setRange, filteredData } = useChartRangeFilter(weightHistory, getRecordedAt);
-
   const chartData = useMemo(
     () =>
-      [...filteredData].reverse().map((entry) => ({
+      [...weightHistory].reverse().map((entry) => ({
         timestamp: new Date(entry.recordedAt).getTime(),
         weight: entry.weight,
       })),
-    [filteredData],
+    [weightHistory],
   );
 
   return (

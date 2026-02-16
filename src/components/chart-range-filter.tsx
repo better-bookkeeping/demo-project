@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 
-const RANGES = ["1W", "1M", "3M", "6M", "1Y", "All"] as const;
+export const RANGES = ["1W", "1M", "3M", "6M", "1Y", "All"] as const;
 export type TimeRange = (typeof RANGES)[number];
 
-const RANGE_DAYS: Record<Exclude<TimeRange, "All">, number> = {
+export const RANGE_DAYS: Record<Exclude<TimeRange, "All">, number> = {
   "1W": 7,
   "1M": 30,
   "3M": 90,
@@ -12,7 +12,7 @@ const RANGE_DAYS: Record<Exclude<TimeRange, "All">, number> = {
   "1Y": 365,
 };
 
-function getCutoffDate(range: TimeRange): Date | null {
+export function getCutoffDate(range: TimeRange): Date | null {
   if (range === "All") return null;
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - RANGE_DAYS[range]);

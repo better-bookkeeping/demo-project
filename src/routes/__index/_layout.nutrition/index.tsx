@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { addNutritionLogServerFn, updateCalorieGoalServerFn } from "@/lib/nutrition.server";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { nutritionHistoryQueryOptions, dailyNutritionQueryOptions } from "./-queries/nutrition";
 import {
   LineChart,
@@ -18,7 +18,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { ChartRangeFilter, useChartRangeFilter } from "@/components/chart-range-filter";
+import { ChartRangeFilter, type TimeRange } from "@/components/chart-range-filter";
 
 export const Route = createFileRoute("/__index/_layout/nutrition/")({
   loader: async ({ context }) => {
@@ -38,7 +38,8 @@ const MACRO_COLORS = {
 
 function NutritionPage() {
   const queryClient = useQueryClient();
-  const { data: history } = useSuspenseQuery(nutritionHistoryQueryOptions());
+  const [range, setRange] = useState<TimeRange>("1M");
+  const { data: history = [] } = useQuery(nutritionHistoryQueryOptions(range));
   const { data: dailySummary } = useSuspenseQuery(dailyNutritionQueryOptions());
 
   const [calories, setCalories] = useState("");
@@ -55,7 +56,7 @@ function NutritionPage() {
     mutationFn: (data: { calories: number; carbsG: number; proteinG: number; fatG: number }) =>
       addNutritionLogServerFn({ data }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: nutritionHistoryQueryOptions().queryKey });
+      queryClient.invalidateQueries({ queryKey: ["nutrition-history"] });
       queryClient.invalidateQueries({ queryKey: dailyNutritionQueryOptions().queryKey });
       setCalories("");
       setCarbsG("");
@@ -104,12 +105,9 @@ function NutritionPage() {
   const deficit =
     dailySummary.calorieGoal !== null ? dailySummary.calories - dailySummary.calorieGoal : null;
 
-  const getLoggedAt = useCallback((entry: (typeof history)[number]) => entry.loggedAt, []);
-  const { range, setRange, filteredData } = useChartRangeFilter(history, getLoggedAt, "1M");
-
   const calorieChartData = useMemo(() => {
     const dailyMap = new Map<string, number>();
-    for (const entry of filteredData) {
+    for (const entry of history) {
       const day = new Date(entry.loggedAt).toISOString().slice(0, 10);
       dailyMap.set(day, (dailyMap.get(day) ?? 0) + entry.calories);
     }
@@ -119,7 +117,7 @@ function NutritionPage() {
         calories: cals,
       }))
       .sort((a, b) => a.timestamp - b.timestamp);
-  }, [filteredData]);
+  }, [history]);
 
   return (
     <div className="space-y-6">
