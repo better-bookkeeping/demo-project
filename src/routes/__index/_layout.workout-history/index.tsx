@@ -83,18 +83,19 @@ function WorkoutHistoryPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="py-3 px-4">
+                    <th scope="col" className="py-3 px-4">
                       <input
                         type="checkbox"
+                        aria-label="Select all"
                         checked={selectedWorkouts.size === workouts.length}
                         onChange={toggleAll}
                         className="rounded border-gray-300"
                       />
                     </th>
-                    <th className="text-left py-3 px-4 font-medium text-slate-600">Date</th>
-                    <th className="text-right py-3 px-4 font-medium text-slate-600">Sets</th>
+                    <th scope="col" className="text-left py-3 px-4 font-medium text-slate-600">Date</th>
+                    <th scope="col" className="text-right py-3 px-4 font-medium text-slate-600">Sets</th>
                     {uniqueMovements.map(([id, name]) => (
-                      <th key={id} className="text-right py-3 px-4 font-medium text-slate-600">
+                      <th scope="col" key={id} className="text-right py-3 px-4 font-medium text-slate-600">
                         {name}
                       </th>
                     ))}
@@ -116,6 +117,7 @@ function WorkoutHistoryPage() {
                         <td className="py-3 px-4">
                           <input
                             type="checkbox"
+                            aria-label={`Select workout from ${workout.completedAt ? new Date(workout.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "unknown date"}`}
                             checked={selectedWorkouts.has(workout.id)}
                             onChange={() => toggleWorkout(workout.id)}
                             className="rounded border-gray-300"
