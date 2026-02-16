@@ -62,11 +62,19 @@ export const addSetServerFn = createServerFn({ method: "POST" })
       data: { movementId: string; reps: number; weight: number };
     }) => {
       const prisma = await getServerSidePrismaClient();
-      const workout = await prisma.workout.findFirst({
-        where: { userId: context.user.id, completedAt: null },
-      });
+      const [workout, movement] = await Promise.all([
+        prisma.workout.findFirst({
+          where: { userId: context.user.id, completedAt: null },
+        }),
+        prisma.movement.findFirst({
+          where: { id: data.movementId, userId: context.user.id },
+        }),
+      ]);
       if (!workout) {
         return { success: false, error: "No active workout" };
+      }
+      if (!movement) {
+        return { success: false, error: "Movement not found" };
       }
       const set = await prisma.set.create({
         data: {
@@ -118,12 +126,13 @@ export const deleteWorkoutsServerFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ workoutIds: z.array(z.string()) }))
   .handler(async ({ context, data }: { context: { user: { id: string } }; data: { workoutIds: string[] } }) => {
     const prisma = await getServerSidePrismaClient();
-    // Delete sets first, then workouts (only for this user's workouts)
-    await prisma.set.deleteMany({
-      where: { workout: { id: { in: data.workoutIds }, userId: context.user.id } },
-    });
-    await prisma.workout.deleteMany({
-      where: { id: { in: data.workoutIds }, userId: context.user.id },
+    await prisma.$transaction(async (tx) => {
+      await tx.set.deleteMany({
+        where: { workout: { id: { in: data.workoutIds }, userId: context.user.id } },
+      });
+      await tx.workout.deleteMany({
+        where: { id: { in: data.workoutIds }, userId: context.user.id },
+      });
     });
     return { success: true };
   });
