@@ -214,6 +214,14 @@ export const getActiveSessionsServerFn = createServerFn()
     return sessions;
   });
 
+export const getCurrentSessionIdServerFn = createServerFn()
+  .middleware([authMiddleware])
+  .handler(async () => {
+    const sessionToken = getCookie(sessionCookieName);
+    if (!sessionToken) return null;
+    return verifySessionToken(sessionToken);
+  });
+
 export const revokeSessionServerFn = createServerFn({ method: "POST" })
   .middleware([csrfMiddleware, authMiddleware])
   .inputValidator(z.object({ sessionId: z.string() }))
