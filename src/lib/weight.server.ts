@@ -1,10 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getServerSidePrismaClient } from "@/lib/db.server";
 import { authMiddleware } from "@/lib/auth.server";
+import { csrfMiddleware } from "@/lib/csrf.server";
 import { z } from "zod";
 
 export const addWeightServerFn = createServerFn({ method: "POST" })
-  .middleware([authMiddleware])
+  .middleware([csrfMiddleware, authMiddleware])
   .inputValidator(z.object({ weight: z.number().min(1).max(1500) }))
   .handler(async ({ context, data }: { context: { user: { id: string } }; data: { weight: number } }) => {
     const prisma = await getServerSidePrismaClient();
