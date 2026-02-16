@@ -49,6 +49,7 @@ export function ChartRangeFilter({
           key={r}
           variant={value === r ? "default" : "ghost"}
           size="sm"
+          aria-pressed={value === r}
           className={`h-7 px-2.5 text-xs ${value === r ? "bg-primary text-white hover:bg-primary/90" : ""}`}
           onClick={() => onChange(r)}
         >
