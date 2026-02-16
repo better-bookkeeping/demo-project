@@ -9,7 +9,12 @@ import { csrfMiddleware } from "./csrf.server";
 import { rateLimitMiddleware } from "./rate-limit.server";
 import { z } from "zod";
 
-const COOKIE_SECRET = process.env.COOKIE_SECRET || "dev-secret-change-in-production";
+const COOKIE_SECRET = process.env.COOKIE_SECRET ?? (() => {
+  if (process.env.NODE_ENV === "production" || process.env.ENVIRONMENT === "production") {
+    throw new Error("COOKIE_SECRET environment variable must be set in production");
+  }
+  return "dev-secret-change-in-production";
+})();
 const BCRYPT_SALT_ROUNDS = 12;
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -17,6 +22,10 @@ function isBcryptHash(value: string): boolean {
   return /^\$2[aby]?\$/.test(value);
 }
 
+// DEPRECATED: Plaintext password migration path. This exists solely to migrate
+// legacy accounts that were created before bcrypt was introduced. Once all
+// accounts have been migrated (check: SELECT count(*) FROM "User" WHERE password
+// NOT LIKE '$2%'), remove the plaintext branch entirely.
 async function verifyAndMigratePassword(
   userId: string,
   storedPassword: string,
@@ -126,7 +135,7 @@ const authRateLimit = rateLimitMiddleware({ maxAttempts: 10, windowMs: 15 * 60 *
 
 export const signInServerFn = createServerFn({ method: "POST" })
   .middleware([csrfMiddleware, authRateLimit])
-  .inputValidator(z.object({ email: z.string().email(), password: z.string() }))
+  .inputValidator(z.object({ email: z.string().email(), password: z.string().max(128) }))
   .handler(async ({ data }: { data: { email: string; password: string } }) => {
     const { email, password } = data;
 
@@ -151,7 +160,7 @@ export const signInServerFn = createServerFn({ method: "POST" })
 
 export const createAccountServerFn = createServerFn({ method: "POST" })
   .middleware([csrfMiddleware, authRateLimit])
-  .inputValidator(z.object({ email: z.email(), name: z.string().min(1), password: z.string().min(8) }))
+  .inputValidator(z.object({ email: z.email(), name: z.string().min(1), password: z.string().min(8).max(128) }))
   .handler(async ({ data }: { data: { email: string; name: string; password: string } }) => {
     const { email, name, password } = data;
 
