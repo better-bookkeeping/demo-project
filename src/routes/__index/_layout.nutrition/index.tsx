@@ -17,7 +17,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
 import { ChartRangeFilter, useChartRangeFilter } from "@/components/chart-range-filter";
 
@@ -91,12 +90,15 @@ function NutritionPage() {
 
   const macroData = useMemo(() => {
     const total = dailySummary.carbsG + dailySummary.proteinG + dailySummary.fatG;
-    if (total === 0) return [];
-    return [
-      { name: "Carbs", value: Math.round(dailySummary.carbsG), color: MACRO_COLORS.carbs },
-      { name: "Protein", value: Math.round(dailySummary.proteinG), color: MACRO_COLORS.protein },
-      { name: "Fat", value: Math.round(dailySummary.fatG), color: MACRO_COLORS.fat },
-    ];
+    if (total === 0) return { items: [], total: 0 };
+    return {
+      items: [
+        { name: "Carbs", value: Math.round(dailySummary.carbsG), color: MACRO_COLORS.carbs, pct: Math.round((dailySummary.carbsG / total) * 100) },
+        { name: "Protein", value: Math.round(dailySummary.proteinG), color: MACRO_COLORS.protein, pct: Math.round((dailySummary.proteinG / total) * 100) },
+        { name: "Fat", value: Math.round(dailySummary.fatG), color: MACRO_COLORS.fat, pct: Math.round((dailySummary.fatG / total) * 100) },
+      ],
+      total: Math.round(total),
+    };
   }, [dailySummary]);
 
   const deficit =
@@ -227,20 +229,61 @@ function NutritionPage() {
             <CardTitle>Macro Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
-            {macroData.length === 0 ? (
+            {macroData.items.length === 0 ? (
               <p className="text-sm text-slate-500">No meals logged today.</p>
             ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie data={macroData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                    {macroData.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Legend />
-                  <Tooltip formatter={(value: number, name: string) => [`${value}g`, name]} />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="flex items-center gap-6">
+                <div className="relative shrink-0">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-lg font-bold text-slate-900">{macroData.total}g</span>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider">Total</span>
+                  </div>
+                  <ResponsiveContainer width={160} height={160}>
+                    <PieChart>
+                      <Pie
+                        data={macroData.items}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={72}
+                        strokeWidth={2}
+                        stroke="#fff"
+                        paddingAngle={3}
+                        cornerRadius={4}
+                      >
+                        {macroData.items.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "13px" }}
+                        formatter={(value: number, name: string) => [`${value}g`, name]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 space-y-3">
+                  {macroData.items.map((macro) => (
+                    <div key={macro.name} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: macro.color }} />
+                          <span className="font-medium text-slate-700">{macro.name}</span>
+                        </div>
+                        <span className="text-slate-500 tabular-nums">{macro.value}g <span className="text-slate-400">({macro.pct}%)</span></span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ width: `${macro.pct}%`, backgroundColor: macro.color }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
