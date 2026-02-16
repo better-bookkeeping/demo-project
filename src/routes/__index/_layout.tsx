@@ -36,13 +36,15 @@ function RouteComponent() {
           ))}
         </div>
         <div className="border-t border-slate-200 pt-4 mt-4 space-y-2">
-          <div className="flex items-center gap-3 px-3 py-2 text-sm text-slate-600">
+          <Link
+            to="/sessions"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors [&.active]:bg-slate-100">
             <User className="w-4 h-4" />
             <div className="truncate">
               <p className="text-xs text-slate-400">Logged in as</p>
-              <p className="font-medium truncate">{user.name || user.email}</p>
+              <p className="font-medium truncate text-slate-700">{user.name || user.email}</p>
             </div>
-          </div>
+          </Link>
           <Link to="/logout">
             <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-slate-600">
               <LogOut className="w-4 h-4" />
