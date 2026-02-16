@@ -156,6 +156,7 @@ function CurrentWorkoutPage() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    aria-label={`Delete ${set.movement.name} set`}
                     onClick={() => deleteSetMutation.mutate(set.id)}
                     className="h-8 w-8 text-slate-400">
                     <X className="w-4 h-4" />
