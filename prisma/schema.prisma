@@ -15,10 +15,11 @@ model User {
   updatedAt    DateTime        @updatedAt
   password     String
   calorieGoal  Int?
-  workouts     Workout[]
-  weights      UserWeight[]
+  workouts      Workout[]
+  weights       UserWeight[]
   nutritionLogs NutritionLog[]
-  sessions     Session[]
+  sessions      Session[]
+  movements     Movement[]
 }
 
 model Session {
@@ -37,7 +38,7 @@ model Session {
 model UserWeight {
   id         String   @id @default(uuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   weight     Float
   recordedAt DateTime @default(now())
 
@@ -46,14 +47,18 @@ model UserWeight {
 
 model Movement {
   id         String  @id @default(uuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   name       String
   bodyWeight Boolean @default(false)
   sets       Set[]
+
+  @@index([userId])
 }
 
 model Workout {
   userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   id          String    @id @default(uuid())
   completedAt DateTime?
   sets        Set[]
@@ -77,7 +82,7 @@ model Set {
 model NutritionLog {
   id       String   @id @default(uuid())
   userId   String
-  user     User     @relation(fields: [userId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   calories Int
   carbsG   Float
   proteinG Float
