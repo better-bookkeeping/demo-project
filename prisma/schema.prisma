@@ -8,14 +8,30 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  name      String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  password  String
-  workouts  Workout[]
-  weights   UserWeight[]
+  id           String          @id @default(uuid())
+  email        String          @unique
+  name         String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  password     String
+  calorieGoal  Int?
+  workouts     Workout[]
+  weights      UserWeight[]
+  nutritionLogs NutritionLog[]
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model UserWeight {
@@ -40,6 +56,8 @@ model Workout {
   id          String    @id @default(uuid())
   completedAt DateTime?
   sets        Set[]
+
+  @@index([userId, completedAt])
 }
 
 model Set {
@@ -50,4 +68,20 @@ model Set {
   movement   Movement @relation(fields: [movementId], references: [id])
   reps       Int
   weight     Int
+
+  @@index([workoutId])
+  @@index([movementId])
+}
+
+model NutritionLog {
+  id       String   @id @default(uuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  calories Int
+  carbsG   Float
+  proteinG Float
+  fatG     Float
+  loggedAt DateTime @default(now())
+
+  @@index([userId, loggedAt(sort: Desc)])
 }
