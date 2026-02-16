@@ -1,18 +1,20 @@
 import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
-import { Dumbbell, History, BicepsFlexed, User, LogOut } from "lucide-react";
+import { Dumbbell, History, Scale, BicepsFlexed, Apple, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/__index/_layout")({
   component: RouteComponent,
   beforeLoad: ({ context }) => {
     if (!context.user) throw redirect({ to: "/sign-in" });
-    return { user: context.user! };
+    return { user: context.user };
   },
 });
 
 const navItems = [
   { to: "/current-workout", label: "Current Workout", icon: Dumbbell },
   { to: "/workout-history", label: "Workout History", icon: History },
+  { to: "/weight", label: "Weight", icon: Scale },
+  { to: "/nutrition", label: "Nutrition", icon: Apple },
   { to: "/movements", label: "Movements", icon: BicepsFlexed },
 ] as const;
 
@@ -34,22 +36,24 @@ function RouteComponent() {
           ))}
         </div>
         <div className="border-t border-slate-200 pt-4 mt-4 space-y-2">
-          <div className="flex items-center gap-3 px-3 py-2 text-sm text-slate-600">
+          <Link
+            to="/sessions"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors [&.active]:bg-slate-100">
             <User className="w-4 h-4" />
             <div className="truncate">
               <p className="text-xs text-slate-400">Logged in as</p>
-              <p className="font-medium truncate">{user.name || user.email}</p>
+              <p className="font-medium truncate text-slate-700">{user.name || user.email}</p>
             </div>
-          </div>
-          <a href="/logout">
+          </Link>
+          <Link to="/logout">
             <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-slate-600">
               <LogOut className="w-4 h-4" />
               Log out
             </Button>
-          </a>
+          </Link>
         </div>
       </nav>
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-6 overflow-y-auto">
         <Outlet />
       </main>
     </div>

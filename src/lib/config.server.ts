@@ -1,13 +1,7 @@
 class AppConfigService<ConfigType> {
   private config: ConfigType;
-  constructor(inputFig: ConfigType) {
-    this.config = inputFig;
-  }
-  isInitialized() {
-    return !!this.config;
-  }
-  initialize() {
-    this.config = this.config;
+  constructor(config: ConfigType) {
+    this.config = config;
   }
   getAppConfig() {
     return this.config;

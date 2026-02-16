@@ -12,7 +12,7 @@ const getAllUsersServerFn = createServerFn().handler(async () => {
   if (configService.getAppConfig().environment === "production") throw new Error("Forbidden!");
   const prisma = await getServerSidePrismaClient();
   return prisma.user.findMany({
-    select: { id: true, email: true, name: true, createdAt: true, password: true },
+    select: { id: true, email: true, name: true, createdAt: true },
   });
 });
 
@@ -44,8 +44,13 @@ function SignInPage() {
       } else {
         setError(result.error || "Sign in failed");
       }
-    } catch {
-      setError("An unexpected error occurred");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("Too many attempts")) {
+        setError(message);
+      } else {
+        setError("An unexpected error occurred");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +67,7 @@ function SignInPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">{error}</div>
+              <div role="alert" className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">{error}</div>
             )}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-gray-700">

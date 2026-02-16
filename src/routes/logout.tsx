@@ -1,19 +1,13 @@
 import { logoutServerFn } from "@/lib/auth.server";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+// Logout is handled in beforeLoad so it completes before rendering.
+// This avoids the useEffect approach which can fire twice in React strict mode
+// and leaves a dangling "Logging out..." UI on errors.
 export const Route = createFileRoute("/logout")({
-  component: LogoutPage,
+  beforeLoad: async () => {
+    await logoutServerFn();
+    throw redirect({ to: "/sign-in" });
+  },
+  component: () => <div>Logging out...</div>,
 });
-
-function LogoutPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    logoutServerFn().then(() => {
-      router.navigate({ to: "/sign-in" });
-    });
-  }, [router]);
-
-  return <div>Logging out...</div>;
-}

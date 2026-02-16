@@ -11,14 +11,15 @@ import {
   deleteSetServerFn,
 } from "@/lib/workouts.server";
 import { Play, Check, Plus, X } from "lucide-react";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { currentWorkoutQueryOptions, movementsQueryOptions } from "./-queries/current-workout";
+import { useSuspenseQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { currentWorkoutQueryOptions, movementsQueryOptions, latestWeightQueryOptions } from "./-queries/current-workout";
 
 export const Route = createFileRoute("/__index/_layout/current-workout/")({
   loader: async ({ context }) => {
     await Promise.all([
       context.queryClient.ensureQueryData(currentWorkoutQueryOptions()),
       context.queryClient.ensureQueryData(movementsQueryOptions()),
+      context.queryClient.ensureQueryData(latestWeightQueryOptions()),
     ]);
   },
   component: CurrentWorkoutPage,
@@ -28,6 +29,7 @@ function CurrentWorkoutPage() {
   const queryClient = useQueryClient();
   const { data: workout } = useSuspenseQuery(currentWorkoutQueryOptions());
   const { data: movements } = useSuspenseQuery(movementsQueryOptions());
+  const { data: latestWeight } = useQuery(latestWeightQueryOptions());
   const [selectedMovement, setSelectedMovement] = useState("");
   const [reps, setReps] = useState("");
   const [weight, setWeight] = useState("");
@@ -61,6 +63,14 @@ function CurrentWorkoutPage() {
       queryClient.invalidateQueries({ queryKey: currentWorkoutQueryOptions().queryKey });
     },
   });
+
+  const handleMovementChange = (movementId: string) => {
+    setSelectedMovement(movementId);
+    const movement = movements.find((m) => m.id === movementId);
+    if (movement?.bodyWeight && latestWeight) {
+      setWeight(String(Math.round(latestWeight.weight)));
+    }
+  };
 
   const handleAddSet = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,7 +122,7 @@ function CurrentWorkoutPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleAddSet} className="flex gap-2 items-center">
-            <Select value={selectedMovement} onChange={(e) => setSelectedMovement(e.target.value)}>
+            <Select value={selectedMovement} onChange={(e) => handleMovementChange(e.target.value)}>
               <option value="">Select movement</option>
               {movements.map((m) => (
                 <option key={m.id} value={m.id}>
@@ -156,6 +166,7 @@ function CurrentWorkoutPage() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    aria-label={`Delete ${set.movement.name} set`}
                     onClick={() => deleteSetMutation.mutate(set.id)}
                     className="h-8 w-8 text-slate-400">
                     <X className="w-4 h-4" />

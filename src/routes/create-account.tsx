@@ -28,17 +28,19 @@ function CreateAccountPage() {
     setIsLoading(true);
 
     try {
-      console.log("Creating account", { email, name, password });
       const result = await createAccountServerFn({ data: { email, name, password } });
-      console.log("Result", result);
       if (result.success) {
         router.navigate({ to: "/" });
       } else {
         setError(result.error || "Account creation failed");
       }
-    } catch (error) {
-      console.error("Error creating account", error);
-      setError("An unexpected error occurred");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("Too many attempts")) {
+        setError(message);
+      } else {
+        setError("An unexpected error occurred");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +57,7 @@ function CreateAccountPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">{error}</div>
+              <div role="alert" className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">{error}</div>
             )}
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium text-gray-700">
@@ -96,10 +98,10 @@ function CreateAccountPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
                 autoComplete="new-password"
               />
-              <p className="text-xs text-gray-500">Must be at least 6 characters</p>
+              <p className="text-xs text-gray-500">Must be at least 8 characters</p>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create account"}

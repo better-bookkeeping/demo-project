@@ -2,10 +2,11 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createMovementServerFn } from "@/lib/movements.server";
+import { createMovementServerFn, deleteMovementServerFn } from "@/lib/movements.server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { movementsQueryOptions } from "./-queries/movements";
+import { Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/__index/_layout/movements/")({
   loader: async ({ context }) => {
@@ -18,19 +19,29 @@ function MovementsPage() {
   const queryClient = useQueryClient();
   const { data: movements } = useSuspenseQuery(movementsQueryOptions());
   const [name, setName] = useState("");
+  const [bodyWeight, setBodyWeight] = useState(false);
 
   const createMovementMutation = useMutation({
-    mutationFn: (name: string) => createMovementServerFn({ data: { name } }),
+    mutationFn: (data: { name: string; bodyWeight: boolean }) =>
+      createMovementServerFn({ data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: movementsQueryOptions().queryKey });
       setName("");
+      setBodyWeight(false);
+    },
+  });
+
+  const deleteMovementMutation = useMutation({
+    mutationFn: (id: string) => deleteMovementServerFn({ data: { id } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: movementsQueryOptions().queryKey });
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    createMovementMutation.mutate(name.trim());
+    createMovementMutation.mutate({ name: name.trim(), bodyWeight });
   };
 
   return (
@@ -42,16 +53,27 @@ function MovementsPage() {
           <CardTitle>Add New Movement</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="flex gap-3">
-            <Input
-              placeholder="Movement name (e.g. Bench Press)"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="flex-1"
-            />
-            <Button type="submit" disabled={!name.trim()}>
-              {createMovementMutation.isPending ? "Adding..." : "Add"}
-            </Button>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="flex gap-3">
+              <Input
+                placeholder="Movement name (e.g. Bench Press)"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit" disabled={!name.trim()}>
+                {createMovementMutation.isPending ? "Adding..." : "Add"}
+              </Button>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <input
+                type="checkbox"
+                checked={bodyWeight}
+                onChange={(e) => setBodyWeight(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              Body-weight movement
+            </label>
           </form>
         </CardContent>
       </Card>
@@ -65,8 +87,22 @@ function MovementsPage() {
           ) : (
             <ul className="space-y-2">
               {movements.map((movement) => (
-                <li key={movement.id} className="px-3 py-2 bg-slate-50 rounded-lg text-sm font-medium text-slate-700">
-                  {movement.name}
+                <li key={movement.id} className="px-3 py-2 bg-slate-50 rounded-lg text-sm font-medium text-slate-700 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {movement.name}
+                    {movement.bodyWeight && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">BW</span>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Delete ${movement.name}`}
+                    onClick={() => deleteMovementMutation.mutate(movement.id)}
+                    className="h-8 w-8 text-slate-400 hover:text-red-500"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </li>
               ))}
             </ul>
