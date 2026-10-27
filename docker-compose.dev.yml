@@ -1,66 +1,57 @@
-name: demo-project
-
-secrets:
-  github_token:
-    environment: GITHUB_TOKEN
+name: setlist
 
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: demo-project-db
-    networks:
-      - demo-project-network
+    container_name: setlist-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: demo_project
+      POSTGRES_DB: setlist
     ports:
-      - "5432:5432"
+      - "55432:5432"
     volumes:
-      - demo_postgres_data:/var/lib/postgresql/data
+      - setlist_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  workout-app:
+  app:
     user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
-    container_name: demo-project
+    container_name: setlist-app
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - demo-project-network
     env_file:
-      - .env
-      - .env.local
+      - path: .env
+      - path: .env.local
+        required: false
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/demo_project
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/setlist
+      - PORT=3000
     build:
       context: .
-      secrets:
-        - github_token
       args:
         USER_ID: ${USER_ID:-1000}
         GROUP_ID: ${GROUP_ID:-1000}
-      dockerfile: Dockerfile
-      target: development
     ports:
-      - ${PORT:-3000}:3000
+      - "3000:3000"
     develop:
       watch:
         - action: sync
           path: ./src
           target: /app/src
+        - action: sync
+          path: ./public
+          target: /app/public
+        - action: rebuild
+          path: ./prisma
         - action: rebuild
           path: package.json
         - action: rebuild
           path: bun.lock
 
-networks:
-  demo-project-network:
-    name: demo_demo-project-network
-
 volumes:
-  demo_postgres_data:
+  setlist_postgres_data:

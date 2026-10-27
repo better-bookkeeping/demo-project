@@ -23,8 +23,7 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@prisma/client/runtime/library": ["./types/prisma-runtime-override.d.ts"]
+      "@/*": ["./src/*"]
     }
   }
 }

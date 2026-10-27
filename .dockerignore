@@ -1,2 +1,8 @@
 node_modules
-generated/
+prisma/generated
+.env.local
+.tanstack
+.output
+.nitro
+playwright-report
+test-results

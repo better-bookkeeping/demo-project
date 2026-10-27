@@ -24,14 +24,4 @@ test.describe("Movements", () => {
       // TODO: Implement this test
     });
   });
-
-  test.describe("delete", () => {
-    test.skip("should delete an existing movement", async ({ page }) => {
-      // TODO: Implement this test
-    });
-
-    test.skip("should remove the movement from the list after deletion", async ({ page }) => {
-      // TODO: Implement this test
-    });
-  });
 });

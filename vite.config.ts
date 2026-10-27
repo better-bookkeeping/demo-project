@@ -22,7 +22,6 @@ const config = defineConfig({
     sourcemap: process.env.ENVIRONMENT === "development" || process.env.ENVIRONMENT === "test",
   },
   server: {
-    allowedHosts: ["onboarding.abacus.local"],
     watch: { usePolling: true },
   },
 });

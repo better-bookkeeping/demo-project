@@ -1,9 +1,12 @@
 import path from "node:path";
-import { defineConfig } from "prisma/config";
+import { config } from "dotenv";
+import { defineConfig, env } from "prisma/config";
+
+config({ path: [".env.local", ".env"], quiet: true });
 
 export default defineConfig({
   schema: path.join(__dirname, "prisma", "schema.prisma"),
   datasource: {
-    url: process.env.DATABASE_URL!,
+    url: env("DATABASE_URL"),
   },
 });
