@@ -127,29 +127,19 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         name: "viewport",
         content: "width=device-width, initial-scale=1",
       },
-
       {
-        title: "Better Bookkeeping - Onboarding",
+        title: "Setlist",
       },
-    ],
-    scripts: [
-      {
-        src: "/config.js",
-        type: "text/javascript",
-      },
-      // ...(import.meta.env.DEV
-      //   ? [
-      //       {
-      //         src: "//www.react-grab.com/script.js",
-      //         crossOrigin: "anonymous" as const,
-      //       },
-      //     ]
-      //   : []),
     ],
     links: [
       {
         rel: "icon",
-        href: "/favicon.png",
+        type: "image/svg+xml",
+        href: "/favicon.svg",
+      },
+      {
+        rel: "manifest",
+        href: "/manifest.json",
       },
       {
         rel: "stylesheet",
@@ -158,10 +148,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         rel: "stylesheet",
         href: toastifyStyles,
-      },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap",
       },
     ],
   }),

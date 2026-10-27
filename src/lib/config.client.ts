@@ -18,18 +18,9 @@ function resolveClientEnv(key: string): string {
 let _clientConfig: ClientConfig | null = null;
 export function getClientConfig(): ClientConfig {
   if (_clientConfig) return _clientConfig;
-  if (typeof window === "undefined" || import.meta.env.VITE_ENVIRONMENT === "development") {
-    _clientConfig = {
-      environment: resolveClientEnv("VITE_ENVIRONMENT") as "development" | "test" | "staging" | "production",
-    };
-  } else {
-    _clientConfig = {
-      environment:
-        window.APP_CONFIG?.environment ||
-        (resolveClientEnv("VITE_ENVIRONMENT") as "development" | "test" | "staging" | "production"),
-    };
-  }
-  console.log("Client configuration loaded:", _clientConfig);
+  _clientConfig = {
+    environment: resolveClientEnv("VITE_ENVIRONMENT") as ClientConfig["environment"],
+  };
   return _clientConfig;
 }
 

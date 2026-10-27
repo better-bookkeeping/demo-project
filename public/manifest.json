@@ -1,15 +1,15 @@
 {
-  "short_name": "Better Bookkeeping - Onboarding",
-  "name": "Better Bookkeeping - Onboarding",
+  "short_name": "Setlist",
+  "name": "Setlist - Strength Training Log",
   "icons": [
     {
-      "src": "favicon.png",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/png"
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#cc2d00",
   "background_color": "#ffffff"
 }
