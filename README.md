@@ -23,7 +23,7 @@ Logging works, but users can't see whether they're getting stronger. They also c
 
 3. **Progression charts.** Workout history should show users how they're progressing. Add a chart where the user picks a movement and a metric, then sees that metric plotted over time. Metrics:
    - **Max weight**: the heaviest weight lifted for that movement on a given day
-   - **Total reps**: the sum of reps for that movement on a given day
+   - **Total reps**
    - **Total volume**: the volume of a set is `weight × reps`, and the total volume for a movement is the sum across all of its sets in a workout
 
 4. **End-to-end tests.** There aren't any yet. Implement the skipped test cases in `e2e/` with Playwright. The scaffolding is in place:
@@ -35,8 +35,6 @@ Logging works, but users can't see whether they're getting stronger. They also c
 
 ### Stretch goals
 
-Pick any of these if you have time. Depth matters more than covering all of them.
-
 - **Nutrition**: how would you add nutrition tracking? Consider macros (carbs, protein, fat), calories, and a calorie surplus or deficit.
 - **Data model and performance**: tell us what we're doing wrong, then show us how you'd handle harder problems such as an admin board that summarizes the users in the system.
 - **Security**: beyond password hashing, what would you improve? Consider rate limiting, CSRF protection, and session management.
@@ -44,7 +42,7 @@ Pick any of these if you have time. Depth matters more than covering all of them
 
 ### What happens next
 
-We'll do a code review of your work together, so be ready to explain how you implemented each feature and why you made the choices you did.
+There will be a code review of your work, so be ready to explain how you implemented each feature and why you made the choices you did.
 
 Use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) for your commit messages, for example `feat(movements): add body-weight flag`. A git hook checks every commit message.
 
